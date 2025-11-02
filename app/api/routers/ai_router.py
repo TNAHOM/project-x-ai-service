@@ -8,7 +8,7 @@ logger = get_logger(__name__)
 
 
 router = APIRouter()
-@router.post("/")
+@router.post("/invoke")
 async def ai(request: schema.AnyAgentRequest = Body(..., discriminator='agent_name')):
     """
     Routes request to the correct agent by `agent_name`, relies on Pydantic's
