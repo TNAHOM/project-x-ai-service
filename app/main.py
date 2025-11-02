@@ -1,10 +1,13 @@
-from fastapi import FastAPI
-from app.api.routers import agent_router, mcp_router
+from fastapi import FastAPI, Body, HTTPException
+from app.api.routers import agent_router, mcp_router, ai_router
 from app.core.logger import setup_logging, get_logger
 from app.mcp.client import close_mcp_client, initialize_mcp_client
+from fastapi.middleware.cors import CORSMiddleware
+
 
 from contextlib import asynccontextmanager
 import asyncio
+
 
 
 
@@ -30,10 +33,15 @@ async def lifespan(app: FastAPI):
         
 app = FastAPI(title="AI Agent Microservice", version='1.0', lifespan=lifespan)
 
-
+origins = ["http://localhost:8000"]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins, allow_credentials=True,
+    allow_methods=["*"], allow_headers=["*"],
+)
 app.include_router(agent_router.router, prefix="/agent", tags=["Agent"])
 app.include_router(mcp_router.router, prefix="/mcp", tags=["MCP"])
-
+app.include_router(ai_router.router, prefix="/ai", tags=["AI"])
 @app.get("/")
 async def root():
     return {"message": "Welcome to the AI Agent Microservice!"}
