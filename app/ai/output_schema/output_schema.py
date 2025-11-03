@@ -12,7 +12,7 @@ Note: These are output-only shapes to validate/model the AI responses. They are
 kept separate from request/context models in `app.schema`.
 """
 
-from typing import List, Optional, Literal
+from typing import List, Optional, Literal, Dict, Any
 from pydantic import BaseModel, Field
 
 
@@ -129,6 +129,23 @@ class TasksAgentOutput(BaseModel):
 		..., description="Granular, step-by-step execution plan items."
 	)
 
+class KnowledgeBaseAgentOutput(BaseModel):
+	"""Output for the Knowledge Base agent as specified in KnowledgeBaseAgentPrompt."""
+
+	knowledge_base_entries: List[Dict[str, Any]] = Field(
+		...,
+		description="List of knowledge base entries relevant to the user's context.",
+	)
+
+class VentingAgentOutput(BaseModel):
+	"""Output for the Venting agent as specified in VentingAgentPrompt."""
+
+	emotional_response: str = Field(
+		..., description="A supportive and empathetic response to the user's venting."
+	)
+	coping_strategies: List[str] = Field(
+		..., description="List of practical coping strategies tailored to the user's situation."
+	)
 
 __all__ = [
 	"ClarifyingAgentOutput",
@@ -137,5 +154,7 @@ __all__ = [
 	"DomainAgentOutput",
 	"TaskItemOutput",
 	"TasksAgentOutput",
+	"KnowledgeBaseAgentOutput",
+	"VentingAgentOutput"
 ]
 

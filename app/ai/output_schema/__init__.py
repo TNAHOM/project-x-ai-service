@@ -11,6 +11,8 @@ from .output_schema import (
 	DomainAgentOutput,
 	TaskItemOutput,
 	TasksAgentOutput,
+	KnowledgeBaseAgentOutput,
+	VentingAgentOutput
 )
 
 __all__ = [
@@ -20,5 +22,7 @@ __all__ = [
 	"DomainAgentOutput",
 	"TaskItemOutput",
 	"TasksAgentOutput",
+	"KnowledgeBaseAgentOutput",
+	"VentingAgentOutput"
 ]
 

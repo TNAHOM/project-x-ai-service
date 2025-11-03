@@ -45,6 +45,13 @@ class TaskContext(DomainContext):
     strategies: List[StrategyModel]
     previous_tasks: Optional[List[TaskModel]] = None
 
+# --- Meta Agents context ---#
+class KnowledgeBaseContext(BaseModel):
+    knowledge_base: Dict[str, Any]
+
+class VentingContext(BaseModel):
+    user_memory: List[Dict[str, Any]]
+
 # --- Request Models (Updated to use new models) ---
 class AgentRequest(BaseModel):
     agent_name: str
@@ -66,7 +73,16 @@ class TasksAgentRequest(AgentRequest):
     agent_name: Literal["tasks"]
     context: TaskContext
 
+# --- Meta agent context --- #
+class KnowledgeBaseAgentRequest(AgentRequest):
+    agent_name: Literal["knowledge_base"]
+    context: KnowledgeBaseContext
+
+class VentingAgentRequest(AgentRequest):
+    agent_name: Literal["venting"]
+    context: VentingContext
+    
 AnyAgentRequest = Union[
-    ClarifyingAgentRequest, ClassifyingAgentRequest, DomainAgentRequest, TasksAgentRequest
+    ClarifyingAgentRequest, ClassifyingAgentRequest, DomainAgentRequest, TasksAgentRequest, KnowledgeBaseAgentRequest, VentingAgentRequest  
 ]
 

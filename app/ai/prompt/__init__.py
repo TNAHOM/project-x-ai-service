@@ -8,6 +8,8 @@ from .ClarifyingPrompts import ClarifyingAgentPrompt
 from .ClassifyingPrompt import ClassifyingAgentPrompt
 from .DomainPrompts import FinanceDomainAgentPrompt, PersonalDomainAgentPrompt, ProfessionalDomainAgentPrompt
 from .TasksPrompt import TasksAgentPrompt
+from .KnowledgeBasePrompt import KnowledgeBaseAgentPrompt
+from .VentingPrompt import VentingAgentPrompt
 
 __all__ = [
 	"ClarifyingAgentPrompt",
@@ -16,6 +18,8 @@ __all__ = [
 	"PersonalDomainAgentPrompt",
 	"ProfessionalDomainAgentPrompt",
 	"TasksAgentPrompt",
+	"KnowledgeBaseAgentPrompt",
+	"VentingAgentPrompt",
 	
 ]
 

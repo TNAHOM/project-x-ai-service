@@ -13,11 +13,15 @@ from .schema import (
 	ClassifyingContext,
 	DomainContext,
 	TaskContext,
+	KnowledgeBaseContext,
+	VentingContext,
 	AgentRequest,
 	ClarifyingAgentRequest,
 	ClassifyingAgentRequest,
 	DomainAgentRequest,
 	TasksAgentRequest,
+	KnowledgeBaseAgentRequest,
+	VentingAgentRequest,
 	AnyAgentRequest,
 )
 
@@ -30,11 +34,15 @@ __all__ = [
 	"ClassifyingContext",
 	"DomainContext",
 	"TaskContext",
+	"KnowledgeBaseContext",
+	"VentingContext",
 	"AgentRequest",
 	"ClarifyingAgentRequest",
 	"ClassifyingAgentRequest",
 	"DomainAgentRequest",
 	"TasksAgentRequest",
+	"KnowledgeBaseAgentRequest",
+	"VentingAgentRequest",
 	"AnyAgentRequest"
 ]
 
