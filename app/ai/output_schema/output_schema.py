@@ -5,7 +5,7 @@ to return in its prompt templates under `app.prompt`:
 
 - ClarifyingAgentPrompt -> ClarifyingAgentOutput
 - ClassifyingAgentPrompt -> ClassifyingAgentOutput (+ nested ProblemSpaceOutput)
-- DomainAgentPrompt -> DomainAgentOutput
+- FinanceDomainAgentPrompt -> DomainAgentOutput
 - TasksAgentPrompt -> TasksAgentOutput (+ nested TaskItemOutput)
 
 Note: These are output-only shapes to validate/model the AI responses. They are
@@ -93,7 +93,7 @@ class DomainStrategyOutput(BaseModel):
 
 
 class DomainAgentOutput(BaseModel):
-    """Output for the Domain agent as specified in DomainAgentPrompt.
+    """Output for the Domain agent as specified in FinanceDomainAgentPrompt.
 
     Produces a list of high-level strategies aligned with the user's personality.
     """
@@ -108,7 +108,7 @@ class DomainAgentOutput(BaseModel):
 # --- Tasks Agent ---
 class TaskItemOutput(BaseModel):
 	"""Single execution task item as required by TasksAgentPrompt."""
-
+	order: int = Field(..., description="Execution order of this task in the overall plan.")
 	name: str = Field(..., description="Short task name.")
 	description: str = Field(..., description="Concrete, actionable task description.")
 	is_automated: bool = Field(
