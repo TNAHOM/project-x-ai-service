@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 import json
 from typing import Any, Dict, List, Optional, Union, Literal
+from regex import T
 from sqlalchemy import Enum
 
 AllowedDomains = ["finance", "personal", "professional"]
@@ -28,11 +29,14 @@ class StrategyModel(BaseModel):
     key_objectives: List[str]
 
 # --- Base Models for Context (Simplified) ---
-class ClarifyingContext(BaseModel):
+class BaseContext(BaseModel):
     history: List[Dict[str, str]]
     data: Optional[Dict[str, Any]] = None
 
-class ClassifyingContext(ClarifyingContext):
+class ClarifyingContext(BaseContext):
+    pass
+
+class ClassifyingContext(BaseContext):
     pass
 
 class DomainContext(ClarifyingContext):
@@ -44,6 +48,10 @@ class DomainContext(ClarifyingContext):
 class TaskContext(DomainContext):
     strategies: List[StrategyModel]
     previous_tasks: Optional[List[TaskModel]] = None
+
+class AutomationContext(BaseContext):
+    tasks: List[TaskModel]
+    knowledge_base: Dict[str, Any]
 
 # --- Meta Agents context ---#
 class KnowledgeBaseContext(BaseModel):
@@ -74,6 +82,10 @@ class TasksAgentRequest(AgentRequest):
     agent_name: Literal["tasks"]
     context: TaskContext
 
+class AutomationAgentRequest(AgentRequest):
+    agent_name: Literal["automation"]
+    context: AutomationContext
+
 # --- Meta agent context --- #
 class KnowledgeBaseAgentRequest(AgentRequest):
     agent_name: Literal["knowledge_base"]
@@ -84,6 +96,6 @@ class VentingAgentRequest(AgentRequest):
     context: VentingContext
     
 AnyAgentRequest = Union[
-    ClarifyingAgentRequest, ClassifyingAgentRequest, DomainAgentRequest, TasksAgentRequest, KnowledgeBaseAgentRequest, VentingAgentRequest  
+    ClarifyingAgentRequest, ClassifyingAgentRequest, DomainAgentRequest, TasksAgentRequest, KnowledgeBaseAgentRequest, VentingAgentRequest, AutomationAgentRequest  
 ]
 

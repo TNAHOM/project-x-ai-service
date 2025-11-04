@@ -129,6 +129,18 @@ class TasksAgentOutput(BaseModel):
 		..., description="Granular, step-by-step execution plan items."
 	)
 
+
+class TaskResults (BaseModel):
+	result_type: str
+	content: Dict[str, Any]
+
+class AutomationAgentOutput(BaseModel):
+	need_more_context: bool = False
+	clarifying_question: Optional[str]
+	automation_result: Optional[str]
+	task_result: Optional[TaskResults]
+
+
 class KnowledgeBaseAgentOutput(BaseModel):
 	"""Output for the Knowledge Base agent as specified in KnowledgeBaseAgentPrompt."""
 

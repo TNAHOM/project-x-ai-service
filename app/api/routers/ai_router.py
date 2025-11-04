@@ -59,6 +59,15 @@ async def ai(request: schema.AnyAgentRequest = Body(..., discriminator='agent_na
             logger.info(f"Tasks agent result: {result}")
             return result
         
+        elif agent_name == "automation":
+            result = ai_instance.automation_agent(
+                context=context,  # type: ignore[arg-type]
+                user_prompt=user_prompt,
+            )
+            logger.info(f"Automation agent result: {result}")
+            return result
+
+
         elif agent_name == "knowledge_base":
             result = ai_instance.knowledge_base_agent(
                 context=context,  # type: ignore[arg-type]
