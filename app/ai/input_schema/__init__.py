@@ -5,6 +5,7 @@ This module re-exports the models and request/response types defined in
 """
 
 from .schema import (
+    AllowedDomains,
 	ProblemSpaceModel,
 	DomainProfileModel,
 	TaskModel,
@@ -12,19 +13,20 @@ from .schema import (
 	ClassifyingContext,
 	DomainContext,
 	TaskContext,
+	KnowledgeBaseContext,
+	VentingContext,
 	AgentRequest,
 	ClarifyingAgentRequest,
 	ClassifyingAgentRequest,
 	DomainAgentRequest,
 	TasksAgentRequest,
+	KnowledgeBaseAgentRequest,
+	VentingAgentRequest,
 	AnyAgentRequest,
-	ClarifyingAgentResponse,
-	ClassifyingAgentResponse,
-	DomainAgentResponse,
-	TasksAgentResponse,
 )
 
 __all__ = [
+	"AllowedDomains",
 	"ProblemSpaceModel",
 	"DomainProfileModel",
 	"TaskModel",
@@ -32,15 +34,15 @@ __all__ = [
 	"ClassifyingContext",
 	"DomainContext",
 	"TaskContext",
+	"KnowledgeBaseContext",
+	"VentingContext",
 	"AgentRequest",
 	"ClarifyingAgentRequest",
 	"ClassifyingAgentRequest",
 	"DomainAgentRequest",
 	"TasksAgentRequest",
-	"AnyAgentRequest",
-	"ClarifyingAgentResponse",
-	"ClassifyingAgentResponse",
-	"DomainAgentResponse",
-	"TasksAgentResponse",
+	"KnowledgeBaseAgentRequest",
+	"VentingAgentRequest",
+	"AnyAgentRequest"
 ]
 

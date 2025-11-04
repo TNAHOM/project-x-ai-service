@@ -6,9 +6,8 @@ from app.ai.ai import AI
 
 logger = get_logger(__name__)
 
-
 router = APIRouter()
-@router.post("/")
+@router.post("/invoke")
 async def ai(request: schema.AnyAgentRequest = Body(..., discriminator='agent_name')):
     """
     Routes request to the correct agent by `agent_name`, relies on Pydantic's
@@ -16,42 +15,65 @@ async def ai(request: schema.AnyAgentRequest = Body(..., discriminator='agent_na
     the AI output against the corresponding response model before returning.
     """
     ai_instance = AI()
-
+    logger.info(f"🤣Received request for agent: {request.agent_name}", extra={"request": request.model_dump()})
+    
     agent_name = request.agent_name
-
+    context = request.context
+    user_prompt = request.user_prompt
+    
     try:
+        logger.info(f"Processing request for agent: {agent_name}")
         if agent_name == "clarifying":
             # request is ClarifyingAgentRequest due to discriminator validation
             result = ai_instance.clarify_agent(
-                context=request.context,  # type: ignore[arg-type]
-                user_prompt=request.user_prompt,
+                context=context,  # type: ignore[arg-type]
+                user_prompt=user_prompt,
             )
+            logger.info(f"Clarifying agent result: {result}")
             return result
             # Validate AI output against response model
             
 
         elif agent_name == "classifying":
             # Extract optional allowed_domains from generic context.data if provided
-            allowed_domains: List[str] = ["tech", "health", "finance"]  # Default domains
             
             result = ai_instance.classify_agent(
-                context=request.context,  # type: ignore[arg-type]
-                allowed_domains=allowed_domains,
+                context=context,  # type: ignore[arg-type]
             )
+            logger.info(f"Classifying agent result: {result}")
             return result
 
         elif agent_name == "domain":
             result = ai_instance.domain_agent(
-                context=request.context,  # type: ignore[arg-type]
+                context=context,  # type: ignore[arg-type]
+                user_prompt=user_prompt,
             )
+            logger.info(f"Domain agent result: {result}")
             return result
 
         elif agent_name == "tasks":
             result = ai_instance.task_agent(
-                context=request.context,  # type: ignore[arg-type]
+                context=context,  # type: ignore[arg-type]
+                user_prompt=user_prompt,
             )
+            logger.info(f"Tasks agent result: {result}")
             return result
-
+        
+        elif agent_name == "knowledge_base":
+            result = ai_instance.knowledge_base_agent(
+                context=context,  # type: ignore[arg-type]
+                user_prompt=user_prompt,
+            )
+            logger.info(f"Knowledge Base agent result: {result}")
+            return result
+        
+        elif agent_name == "venting":
+            result = ai_instance.venting_agent(
+                context=context,  # type: ignore[arg-type]
+                user_prompt=user_prompt,
+            )
+            logger.info(f"Venting agent result: {result}")
+            return result
         else:
             raise HTTPException(status_code=400, detail="Invalid agent name.")
 

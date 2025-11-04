@@ -6,13 +6,20 @@ Re-export common prompt variables so they can be imported from
 
 from .ClarifyingPrompts import ClarifyingAgentPrompt
 from .ClassifyingPrompt import ClassifyingAgentPrompt
-from .DomainPrompts import DomainAgentPrompt
+from .DomainPrompts import FinanceDomainAgentPrompt, PersonalDomainAgentPrompt, ProfessionalDomainAgentPrompt
 from .TasksPrompt import TasksAgentPrompt
+from .KnowledgeBasePrompt import KnowledgeBaseAgentPrompt
+from .VentingPrompt import VentingAgentPrompt
 
 __all__ = [
 	"ClarifyingAgentPrompt",
 	"ClassifyingAgentPrompt",
-	"DomainAgentPrompt",
+	"FinanceDomainAgentPrompt",
+	"PersonalDomainAgentPrompt",
+	"ProfessionalDomainAgentPrompt",
 	"TasksAgentPrompt",
+	"KnowledgeBaseAgentPrompt",
+	"VentingAgentPrompt",
+	
 ]
 

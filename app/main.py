@@ -19,7 +19,7 @@ logger = get_logger(__name__)
 async def lifespan(app: FastAPI):
     logger.info("🚀 FastAPI app started successfully.")
     # ---  Startup ----
-    await initialize_mcp_client()
+    # await initialize_mcp_client()
     try:
         yield
     finally:
