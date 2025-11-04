@@ -51,6 +51,7 @@ class KnowledgeBaseContext(BaseModel):
 
 class VentingContext(BaseModel):
     user_memory: List[Dict[str, Any]]
+    history: List[str]
 
 # --- Request Models (Updated to use new models) ---
 class AgentRequest(BaseModel):

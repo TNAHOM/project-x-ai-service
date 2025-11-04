@@ -184,7 +184,9 @@ class AI():
         
             result_text = (venting_prompt | ventingAgent).invoke({
                 "user_memory": json.dumps(context.user_memory),
-                "user_prompt": user_prompt
+                "user_prompt": user_prompt,
+                "history": json.dumps(context.history)
+
 
             })
 
