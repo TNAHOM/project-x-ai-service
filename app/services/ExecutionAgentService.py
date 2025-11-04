@@ -5,7 +5,7 @@ from app.core.config import settings
 from app.core.logger import get_logger
 from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage
 
-from app.mcp.tools import create_notion_page
+from app.mcp.notion.tools import create_notion_page, create_google_doc
 
 
 logger = get_logger(__name__)
@@ -23,7 +23,8 @@ class ExecutionAgentService:
         Run the agent using ChatGoogleGenerativeAI.bind_tools().
         """
         try:
-            tools = [create_notion_page]
+            # Expose both Notion and Google Docs/Sheets tools; the model will pick the right one
+            tools = [create_notion_page, create_google_doc]
             if isinstance(tools, dict) and "error" in tools:
                 return tools
             if not isinstance(tools, list):

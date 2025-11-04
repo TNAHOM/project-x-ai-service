@@ -36,3 +36,8 @@ htmlcov/
 .coverage
 .coverage.*
 .pytest_cache/
+
+# tokens
+tokens/
+credentials.json
+token.json

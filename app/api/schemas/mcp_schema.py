@@ -11,13 +11,13 @@ class ChatRequest(BaseModel):
         ...,
         min_length=1,
         max_length=200,
-        description="Title of the Notion page",
+        description="Title for the target resource (e.g., Notion page, Google Doc/Sheet)",
     )
     contents: str = Field(
         ...,
         min_length=1,
         max_length=2000,
-        description="General Contents of the Notion page",
+        description="Contents or instructions for the resource (text or table-like description)",
     )
     
     type : str = Field(
@@ -28,7 +28,7 @@ class ChatRequest(BaseModel):
     # --- Add Notion Mode ----
     enable_notion: Optional[bool] = Field(
         True,
-        description="Toggle Notion MCP integration (true for full agent with tools, false for basic LLM)"
+        description="Toggle MCP integration (true for full agent with tools, false for basic LLM)",
     )
     @field_validator('title', 'contents')
     @classmethod

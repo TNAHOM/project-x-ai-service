@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.api.routers import agent_router, mcp_router
+from app.api.routers import agent_router
 from app.core.logger import setup_logging, get_logger
 from app.mcp.client import close_mcp_client, initialize_mcp_client
 
@@ -16,7 +16,11 @@ logger = get_logger(__name__)
 async def lifespan(app: FastAPI):
     logger.info("🚀 FastAPI app started successfully.")
     # ---  Startup ----
-    await initialize_mcp_client()
+    try:
+        await initialize_mcp_client()
+    except Exception as e:
+        # Don't crash the API if MCP backends aren't available; run in degraded mode instead
+        logger.error(f"MCP initialization failed at startup: {e}. Continuing without MCP; requests that require MCP will fallback or error gracefully.")
     try:
         yield
     finally:
@@ -32,7 +36,7 @@ app = FastAPI(title="AI Agent Microservice", version='1.0', lifespan=lifespan)
 
 
 app.include_router(agent_router.router, prefix="/agent", tags=["Agent"])
-app.include_router(mcp_router.router, prefix="/mcp", tags=["MCP"])
+# app.include_router(mcp_router.router, prefix="/mcp", tags=["MCP"])
 
 @app.get("/")
 async def root():

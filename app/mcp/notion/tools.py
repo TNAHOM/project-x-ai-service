@@ -26,4 +26,26 @@ async def create_notion_page(request: ChatRequest) -> dict:
         return {"answer": notionResponse.answer}
     except Exception as e:
         return {"status": "error", "message": str(e)}
+    
+# google doc and sheet creation tools can be added similarly in future
+@tool(
+    description="Creates a Google Doc or Google sheet with the provided content. Requires a title and content.",
+    parse_docstring=True,
+)
+async def create_google_doc(request: ChatRequest) -> dict:
+    """
+    GCreate a Google Doc and google sheet with the given request that contains title, contents and type (using the ChatRequest schema).
+
+    Args:
+        request (ChatRequest): The request object containing title, contents and type.
+
+    Returns:
+        dict: A dictionary with the result of the document creation, including the document url or link or an error message.
+    """
+    try:
+        # Implement Google Doc creation logic here
+        googleDocSpread = await process_chat_request_non_stream(request)
+        return {"answer": googleDocSpread.answer}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 

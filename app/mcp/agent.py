@@ -23,8 +23,7 @@ def create_agent(client: MCPClient) -> MCPAgent:
         # --- Step 2 : Create the Agent Instance ---- 
         agent = MCPAgent(
             llm=llm,
-            client=client,
-            max_steps=30,
+            client=client
         )
         logger.info("✅ MCPAgent created successfully.")
         return agent

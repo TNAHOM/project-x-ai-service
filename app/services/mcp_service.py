@@ -10,91 +10,45 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 
 logger = logging.getLogger(__name__)
 
-# async def process_chat_request(request: ChatRequest) -> AsyncGenerator[SSEEvent, None]:
-#     """
-#     Process a chat request with direct agent streaming.
-#     Args:
-#         request (ChatRequest): The chat request with message and Notion toggle.
-#     Yields:
-#         SSEEvent: Server-Sent Events for real-time UI updates.
-#     """
-#     yield SSEEvent(event="agent_start", data=AgentStartData())
-    
-#     try:
-#         if request.enable_notion:
-#             logger.info("🧠 Starting full MCP agent mode...")
-#             client = await get_mcp_client()
-#             agent = create_agent(client)
-            
-#             # ----  Direct streaming from agent chunks ----
-#             final_parts = []  
-#             async for chunk in agent.stream(request.message):
-#                 logger.debug(f"Agent chunk: {chunk}")
-#                 if isinstance(chunk, dict):
-#                     #  ---- Parse reasoning from messages ----
-#                     messages = chunk.get("messages", [])
-#                     for msg in messages:
-#                         content_full = msg.get("content", "")
-#                         content = content_full.lower()
-#                         # ----  Stream reasoning if present ----
-#                         if "reasoning" in content or "thought" in content:
-#                             thought = content_full.strip()
-#                             if thought:
-#                                 yield SSEEvent(event="reasoning", data=ReasoningData(thought=thought))
-#                         # --- Accumulate assistant outputs as potential final answer parts ---- 
-#                         role = (msg.get("role") or "").lower()
-#                         if role in {"assistant", "ai", "output"} and content_full:
-#                             final_parts.append(content_full.strip())
-                    
-#                     # ---- Parse tool calls from actions ----
-#                     logger.debug(f"Parsing tool calls from chunk actions, chunk: {chunk.get('actions', [])}")
-#                     actions = chunk.get("actions", [])
-#                     for action in actions:
-#                         tool_name = action.get("tool", "unknown")
-#                         tool_input = action.get("input", {})
-#                         yield SSEEvent(event="tool_call", data=ToolCallData(tool_name=tool_name, tool_input=tool_input))
+def _build_instruction(request: ChatRequest) -> str:
+    """Construct an instruction string for the MCP agent based on request.type."""
+    t = (request.type or "").lower()
+    title = request.title
+    contents = request.contents
 
-#                     # ----  Parse tool outputs from steps ----
-#                     logger.debug(f"Parsing tool outputs from chunk steps, chunk: {chunk.get('steps', [])}")
-#                     steps = chunk.get("steps", [])
-#                     for step in steps:
-#                         tool_name = step.get("tool", "unknown")
-#                         tool_output = str(step.get("output", ""))
-#                         yield SSEEvent(event="tool_output", data=ToolOutputData(tool_name=tool_name, tool_output=tool_output))
-                    
-#                     # ---- Accumulate final output ----
-#                     logger.debug(f"Checking for final output in chunk: {chunk}")
-#                     if "final_output" in chunk:
-#                         final_parts.append(str(chunk["final_output"]))
-
-#             # ----  Yield final answer ----
-#             final_answer = " ".join(final_parts).strip()
-#             if not final_answer:
-#                 try:
-#                     final_answer = await agent.run(request.message)
-#                 except Exception as e:
-#                     logger.warning(f"Fallback run() failed to produce final answer: {e}")
-#                     final_answer = "Agent completed successfully."
-#             yield SSEEvent(event="final_answer", data=FinalAnswerData(answer=final_answer))
-#             logger.info("✅ Full MCP agent mode completed.")
-#         else:
-#             # ---  Fallback: Basic LLM Call ----
-#             logger.info("💬 Using basic LLM mode (Notion disabled)")
-#             llm = ChatGoogleGenerativeAI(
-#                 model="gemini-2.5-flash",
-#                 temperature=0.7,
-#             )
-#             yield SSEEvent(event="reasoning", data=ReasoningData(thought=f"Processing: {request.message}"))
-#             response = await llm.ainvoke(request.message)
-#             yield SSEEvent(event="final_answer", data=FinalAnswerData(answer=str(response.content) if getattr(response, "content", None) else "No response generated."))
-    
-#     except Exception as e:
-#         logger.error(f"Error processing request: {e}")
-#         yield SSEEvent(event="error", data=ErrorData(error=str(e), error_type=type(e).__name__))
-    
-#     finally:
-#         yield SSEEvent(event="stream_end", data=StreamEndData())
-
+    if t in {"notion", "notion-page", "notion_doc"}:
+        return (
+            f"Task: Create or update a Notion page.\n"
+            f"Title: {title}\n"
+            f"Contents: {contents}\n\n"
+            "Use the available Notion tools to perform this. If a page with the given title exists, update it; otherwise create it. "
+            "Return ONLY the newly created or updated Notion page URL/link in your final answer."
+        )
+    elif t in {"google-docs", "google-doc", "gdoc", "doc"}:
+        return (
+            f"Task: Create or update a Google Doc.\n"
+            f"Title: {title}\n"
+            f"Contents: {contents}\n\n"
+            "Use the Google Docs tools. If a document with the given title exists, update (append) the contents; "
+            "otherwise create a new document with that title and insert the contents. "
+            "Return ONLY the Google Doc URL in your final answer."
+        )
+    elif t in {"google-sheets", "google-sheet", "gsheet", "sheet"}:
+        return (
+            f"Task: Create or update a Google Sheet.\n"
+            f"Title: {title}\n"
+            f"Contents: {contents}\n\n"
+            "Use the Google Sheets tools. If a spreadsheet with the given title exists, update the first sheet; "
+            "otherwise create a new spreadsheet named with the given title. "
+            "If contents describe a table, parse it into rows and write starting at A1; if it's plain text, write it to A1. "
+            "Return ONLY the spreadsheet URL in your final answer."
+        )
+    else:
+        # Fallback generic instruction; the basic LLM path may handle this
+        return (
+            f"Title: {title}\n"
+            f"Contents: {contents}\n"
+        )
 
 async def process_chat_request_non_stream(request: ChatRequest, timeout_seconds: int = 400) -> ChatResponse:
     """
@@ -103,9 +57,13 @@ async def process_chat_request_non_stream(request: ChatRequest, timeout_seconds:
     """
     start = time.perf_counter()
 
-    usable_request = f"Page Title: {request.title}\nContents: {request.contents} And return the newly created Notion url/link if successfully created"
+    # Build an instruction tailored to the requested provider
+    usable_request = _build_instruction(request)
     try:
-        if request.enable_notion:
+        # Treat enable_notion as a general "enable MCP" flag for all providers
+        supported = {"notion", "notion-page", "notion_doc", "google-docs", "google-doc", "gdoc", "doc", "google-sheets", "google-sheet", "gsheet", "sheet"}
+        use_mcp = bool(request.enable_notion) and (request.type or "").lower() in supported
+        if use_mcp:
             logger.info("🧠 Starting full MCP agent mode (non-stream)...")
             client = await get_mcp_client()
             agent = get_or_create_agent(client)
@@ -135,3 +93,5 @@ async def process_chat_request_non_stream(request: ChatRequest, timeout_seconds:
     except Exception as e:
         logger.error(f"Error processing request (non-stream): {e}")
         return ChatResponse(answer=f"Error: {e}", mode="mcp_agent" if request.enable_notion else "basic_llm", latency_ms=int((time.perf_counter() - start) * 1000))
+    
+    
