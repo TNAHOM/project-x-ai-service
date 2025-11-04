@@ -153,6 +153,33 @@ class AI():
 
         return result_text
     
+    def automation_agent(self, context: input_schema.AutomationContext, user_prompt: str|None):
+        logger.info("Automation Agent Invoked with context:", extra={"context": context})
+        try:
+            automation_prompt = ChatPromptTemplate.from_messages([
+                HumanMessagePromptTemplate.from_template(prompt.AutomationAgentPrompt)
+            ])
+
+            automationAgent = self.llm.with_structured_output(output_schema.AutomationAgentOutput)
+        
+            result_text = (automation_prompt | automationAgent).invoke({
+                # "available_tools": json.dumps(context.available_tools),
+                "tasks": json.dumps([task.model_dump() for task in context.tasks]),
+                "knowledge_base": json.dumps(context.knowledge_base),
+                "history": json.dumps(context.history),
+                "data": json.dumps(context.data) if context.data else None,
+                "user_prompt": user_prompt,
+
+
+            })
+
+        except Exception as e:
+            logger.error("Automation Agent failed", exc_info=e)
+            raise
+
+        return result_text
+
+    
     def knowledge_base_agent(self, context: input_schema.KnowledgeBaseContext, user_prompt: str|None):
         logger.info("Knowledge Base Agent Invoked with context:", extra={"context": context})
         try:
