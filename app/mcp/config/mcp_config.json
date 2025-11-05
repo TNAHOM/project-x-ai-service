@@ -1,13 +1,5 @@
 {
   "mcpServers": {
-    "Notion": {
-      "url": "https://mcp.notion.com/mcp"
-    },
-    "google-docs": {
-      "command": "python",
-      "args": [
-        "app/mcp/google-doc-sheet/tool.py"
-      ]
-    }
+    
   }
 }

@@ -4,10 +4,16 @@ from app.core.logger import get_logger
 from app.api.schemas.agent_schema import AgentMessage
 
 import json
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 from app.services.ExpanderAgentService import run_expander_agent
 
-
+llm = ChatGoogleGenerativeAI(
+                model="gemini-2.5-flash",
+                temperature=0,
+                max_tokens=None,
+                timeout=300,
+            )
 
 router = APIRouter()
 agent_service = ExecutionAgentService()

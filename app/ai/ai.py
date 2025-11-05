@@ -2,15 +2,17 @@ from venv import logger
 from fastapi import FastAPI, Body
 from pydantic import BaseModel, Field
 import json
-from typing import Any, Dict, List, Optional, Union, Literal
-from fastapi.middleware.cors import CORSMiddleware
 from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
 from langchain.chat_models import init_chat_model
 from langchain_core.globals import set_debug
 import os
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_perplexity import ChatPerplexity
 from app.ai import output_schema, input_schema, prompt
 from dotenv import load_dotenv
+from app.services.ExecutionAgentService import ExecutionAgentService
+from app.api.schemas.mcp_schema import ChatRequest
+
 load_dotenv()
 set_debug(True)
 
@@ -18,6 +20,7 @@ class AI():
     def __init__(self):
         # self.model = init_chat_model("gemini-2.5-flash", model_provider="google_genai", temperature=0.1, top_p = 0.5)
         self.llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
+        self.perplexity_llm = ChatPerplexity(temperature=0, model="sonar", timeout=1800)
 
     def parse_json_like_content(self, input_text):
         """
@@ -138,7 +141,8 @@ class AI():
                 HumanMessagePromptTemplate.from_template(prompt.TasksAgentPrompt),
             ])
 
-            taskAgent = self.llm.with_structured_output(output_schema.TasksAgentOutput)
+            taskAgent = self.perplexity_llm.with_structured_output(output_schema.TasksAgentOutput)
+            
             result_text = (task_prompt | taskAgent).invoke({
                 "problem_space": json.dumps(context.problem_space.model_dump()),
                 "domain_profile": json.dumps(context.domain_profile.model_dump()),
@@ -163,7 +167,7 @@ class AI():
             automationAgent = self.llm.with_structured_output(output_schema.AutomationAgentOutput)
         
             result_text = (automation_prompt | automationAgent).invoke({
-                # "available_tools": json.dumps(context.available_tools),
+                "available_tools": json.dumps(prompt.AvailableTools),
                 "tasks": json.dumps([task.model_dump() for task in context.tasks]),
                 "knowledge_base": json.dumps(context.knowledge_base),
                 "history": json.dumps(context.history),
@@ -178,6 +182,11 @@ class AI():
             raise
 
         return result_text
+    
+    def execution_agent(self, context: ChatRequest, user_prompt: str|None):
+        agent_service = ExecutionAgentService()
+        response =  agent_service.run_agent(context)
+        return response
 
     
     def knowledge_base_agent(self, context: input_schema.KnowledgeBaseContext, user_prompt: str|None):

@@ -3,6 +3,7 @@ import json
 from typing import Any, Dict, List, Optional, Union, Literal
 from regex import T
 from sqlalchemy import Enum
+from pydantic import BaseModel, Field, field_validator 
 
 AllowedDomains = ["finance", "personal", "professional"]
     
@@ -61,6 +62,18 @@ class VentingContext(BaseModel):
     user_memory: List[Dict[str, Any]]
     history: List[str]
 
+class ChatRequest(BaseModel):
+    """
+        Schema For Incoming Chat Requests from the Frontend 
+        That contains title, contents and type of tool to be used.
+    """
+    title: str 
+    contents: str 
+    type : str 
+    # --- Add Notion Mode ----
+    enable_notion: Optional[bool]
+    
+
 # --- Request Models (Updated to use new models) ---
 class AgentRequest(BaseModel):
     agent_name: str
@@ -94,8 +107,12 @@ class KnowledgeBaseAgentRequest(AgentRequest):
 class VentingAgentRequest(AgentRequest):
     agent_name: Literal["venting"]
     context: VentingContext
+
+class ExecutionAgentRequest(AgentRequest):
+    agent_name: Literal["execution"]
+    context: ChatRequest
     
 AnyAgentRequest = Union[
-    ClarifyingAgentRequest, ClassifyingAgentRequest, DomainAgentRequest, TasksAgentRequest, KnowledgeBaseAgentRequest, VentingAgentRequest, AutomationAgentRequest  
+    ClarifyingAgentRequest, ClassifyingAgentRequest, DomainAgentRequest, TasksAgentRequest, KnowledgeBaseAgentRequest, VentingAgentRequest, AutomationAgentRequest, ExecutionAgentRequest
 ]
 

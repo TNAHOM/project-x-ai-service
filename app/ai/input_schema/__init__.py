@@ -23,6 +23,7 @@ from .schema import (
 	TasksAgentRequest,
 	KnowledgeBaseAgentRequest,
 	VentingAgentRequest,
+    ExecutionAgentRequest,
 	AnyAgentRequest,
 )
 
@@ -45,6 +46,7 @@ __all__ = [
 	"TasksAgentRequest",
 	"KnowledgeBaseAgentRequest",
 	"VentingAgentRequest",
+    "ExecutionAgentRequest",
 	"AnyAgentRequest"
 ]
 

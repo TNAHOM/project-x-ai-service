@@ -83,6 +83,14 @@ async def ai(request: schema.AnyAgentRequest = Body(..., discriminator='agent_na
             )
             logger.info(f"Venting agent result: {result}")
             return result
+        
+        elif agent_name == "execution":
+            result = ai_instance.execution_agent(
+                context=context,  # type: ignore[arg-type]
+                user_prompt=user_prompt,
+            )
+            logger.info(f"Execution agent result: {result}")
+            return result
         else:
             raise HTTPException(status_code=400, detail="Invalid agent name.")
 

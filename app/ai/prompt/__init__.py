@@ -10,7 +10,7 @@ from .DomainPrompts import FinanceDomainAgentPrompt, PersonalDomainAgentPrompt, 
 from .TasksPrompt import TasksAgentPrompt
 from .KnowledgeBasePrompt import KnowledgeBaseAgentPrompt
 from .VentingPrompt import VentingAgentPrompt
-from .AutomationPrompts import AutomationAgentPrompt
+from .AutomationPrompts import AutomationAgentPrompt, AvailableTools
 
 __all__ = [
 	"ClarifyingAgentPrompt",
@@ -20,6 +20,7 @@ __all__ = [
 	"ProfessionalDomainAgentPrompt",
 	"TasksAgentPrompt",
     "AutomationAgentPrompt",
+    "AvailableTools",
 	"KnowledgeBaseAgentPrompt",
 	"VentingAgentPrompt",
 	
