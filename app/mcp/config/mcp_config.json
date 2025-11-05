@@ -1,5 +1,21 @@
 {
   "mcpServers": {
     
+    "Notion": {
+      "url": "https://mcp.notion.com/mcp"
+    },
+    "google-docs": {
+      "command": "python3",
+      "args": [
+        "app/mcp/google-doc-sheet/tool.py"
+      ]
+    },
+    "google-calendar": {
+      "transport": "stdio",
+      "command": "python3",
+      "args": [
+        "app/mcp/google-calendar-mcp/app.py"
+      ]
+    }
   }
 }

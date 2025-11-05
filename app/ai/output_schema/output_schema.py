@@ -140,6 +140,9 @@ class AutomationAgentOutput(BaseModel):
 	automation_result: Optional[str]
 	task_result: Optional[TaskResults]
 
+class ExecutionAgentOutput(BaseModel):
+	task_results: List[TaskResults]
+
 
 class KnowledgeBaseAgentOutput(BaseModel):
 	"""Output for the Knowledge Base agent as specified in KnowledgeBaseAgentPrompt."""
@@ -167,6 +170,7 @@ __all__ = [
 	"TaskItemOutput",
 	"TasksAgentOutput",
 	"KnowledgeBaseAgentOutput",
-	"VentingAgentOutput"
+	"VentingAgentOutput",
+	"ExecutionAgentOutput"
 ]
 

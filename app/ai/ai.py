@@ -183,9 +183,9 @@ class AI():
 
         return result_text
     
-    def execution_agent(self, context: ChatRequest, user_prompt: str|None):
+    async def execution_agent(self, context: input_schema.ExecutionContext, user_prompt: str|None):
         agent_service = ExecutionAgentService()
-        response =  agent_service.run_agent(context)
+        response = await agent_service.run_agent(context, user_prompt)
         return response
 
     

@@ -62,16 +62,15 @@ class VentingContext(BaseModel):
     user_memory: List[Dict[str, Any]]
     history: List[str]
 
-class ChatRequest(BaseModel):
+class ExecutionContext(BaseModel):
     """
         Schema For Incoming Chat Requests from the Frontend 
         That contains title, contents and type of tool to be used.
     """
-    title: str 
-    contents: str 
-    type : str 
+    title: Optional[str] = None
+    contents: Optional[str] = None
+    type: Optional[str] = None
     # --- Add Notion Mode ----
-    enable_notion: Optional[bool]
     
 
 # --- Request Models (Updated to use new models) ---
@@ -110,7 +109,7 @@ class VentingAgentRequest(AgentRequest):
 
 class ExecutionAgentRequest(AgentRequest):
     agent_name: Literal["execution"]
-    context: ChatRequest
+    context: Optional[ExecutionContext]
     
 AnyAgentRequest = Union[
     ClarifyingAgentRequest, ClassifyingAgentRequest, DomainAgentRequest, TasksAgentRequest, KnowledgeBaseAgentRequest, VentingAgentRequest, AutomationAgentRequest, ExecutionAgentRequest

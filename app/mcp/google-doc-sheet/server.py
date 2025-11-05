@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from typing import Any, Optional
-
+from app.core.logger import logging
 from google.auth.transport.requests import Request
 from google.auth.credentials import Credentials as BaseCredentials
 from google.oauth2.credentials import Credentials
@@ -11,6 +11,7 @@ from googleapiclient.errors import HttpError
 
 
 # OAuth 2.0 scopes for Google Docs and Drive
+logger = logging.getLogger(__name__)
 SCOPES = [
     'https://www.googleapis.com/auth/documents',
     'https://www.googleapis.com/auth/spreadsheets',
@@ -18,9 +19,9 @@ SCOPES = [
     'https://www.googleapis.com/auth/drive.readonly'
 ]
 
-TOKEN_PATH = Path(__file__).parent / 'tokens' / 'token.json'
-CREDENTIALS_PATH = Path(__file__).parent / 'tokens' / 'credentials.json'
-
+TOKEN_PATH = os.environ.get("GOOGLE_TOKEN_PATH")
+CREDENTIALS_PATH = os.environ.get("GOOGLE_CREDENTIALS_PATH")
+logger.info(f"Using TOKEN_PATH: {TOKEN_PATH}, CREDENTIALS_PATH: {CREDENTIALS_PATH}")
 # Load environment variables from a local .env if present
 def _load_env_file() -> None:
     env_file = Path(__file__).parent / ".env"

@@ -9,7 +9,8 @@ from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage
 from app.mcp.notion.tools import create_notion_page, create_google_doc
 from app.mcp.client import get_mcp_client
 from app.mcp.agent import MCPAgent
-
+from app.ai import output_schema
+from app.ai import input_schema
 
 logger = get_logger(__name__)
 
@@ -28,20 +29,40 @@ class ExecutionAgentService:
             max_retries=2,
         )
 
-    async def run_agent(self, messageRequest: ChatRequest, response_schema=None):
+    async def run_agent(self, messageRequest: input_schema.ExecutionContext, userprompt: str|None):
         """
         Run the agent using ChatGoogleGenerativeAI.bind_tools().
         """
 
         client = await get_mcp_client()
         if client is not None:
-            agent = MCPAgent(llm=self.llm, client=client)
-            result = await agent.run("what tools do you have?")
+            llm = self.llm
+            agent = MCPAgent(llm=llm, client=client)
+
+            # Construct a detailed prompt from the messageRequest object
+            context_prompt = (
+                f"Executing a task with the following context:\n"
+                f"Title: {messageRequest.title}\n"
+                f"Tool Type: {messageRequest.type}\n"
+                f"Contents: {messageRequest.contents}"
+            )
+
+            # Combine the context with the user's original prompt
+            # This ensures the agent has all the information.
+            if userprompt:
+                full_prompt = f"{context_prompt}\n\nUser's instruction: {userprompt}"
+            else:
+                full_prompt = context_prompt
+
+            # Pass the combined and detailed prompt to the agent
+            result = await agent.run(full_prompt)
+            
             logger.info(result)
             return {"message": result}
 
         else:
             return {"message": "don't have tools!"}
+
         # try:
         #     # Expose both Notion and Google Docs/Sheets tools; the model will pick the right one
         #     tools = [create_notion_page, create_google_doc]

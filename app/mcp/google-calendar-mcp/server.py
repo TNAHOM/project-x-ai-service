@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 from typing import Any, Optional, cast
 from datetime import datetime, timedelta
-
+from app.core.logger import logging
 from google.auth.transport.requests import Request
 from google.auth.credentials import Credentials as BaseCredentials
 from google.oauth2.credentials import Credentials
@@ -15,7 +15,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-
+logger = logging.getLogger(__name__)
 # OAuth 2.0 scopes
 SCOPES = [
     'https://www.googleapis.com/auth/calendar',
@@ -23,8 +23,9 @@ SCOPES = [
 ]
 
 # Paths for credentials (default to files alongside this script)
-TOKEN_PATH = Path(__file__).parent / 'token.json'
-CREDENTIALS_PATH = Path(__file__).parent / 'credentials.json'
+TOKEN_PATH = os.environ.get("GOOGLE_TOKEN_PATH")
+CREDENTIALS_PATH = os.environ.get("GOOGLE_CREDENTIALS_PATH")
+logger.info(f"Using TOKEN_PATH: {TOKEN_PATH}, CREDENTIALS_PATH: {CREDENTIALS_PATH}")
 
 
 class GoogleCalendarService:
