@@ -191,13 +191,19 @@ class UserMemoryAgentOutput(BaseModel):
 	)
 
 class VentingAgentOutput(BaseModel):
-	"""Output for the Venting agent as specified in VentingAgentPrompt."""
+	"""Therapeutic clarifying agent + problem space detector.
 
-	emotional_response: str = Field(
-		..., description="A supportive and empathetic response to the user's venting."
+	Produces only clarifying questions (therapeutic tone) and signals readiness
+	to construct a structured problem space.
+	"""
+	is_problem_space: bool = Field(
+		False, description="Whether sufficient context exists to form a structured problem space."
 	)
-	coping_strategies: List[str] = Field(
-		..., description="List of practical coping strategies tailored to the user's situation."
+	clarifying_questions: List[str] = Field(
+		default_factory=list, description="Therapeutic, specific questions to fill missing context."
+	)
+	problem_space: Optional[ProblemSpaceOutput] = Field(
+		None, description="Proposed structured problem space when is_problem_space is true."
 	)
 
 __all__ = [
