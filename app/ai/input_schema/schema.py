@@ -31,7 +31,7 @@ class StrategyModel(BaseModel):
 
 # --- Base Models for Context (Simplified) ---
 class BaseContext(BaseModel):
-    history: List[Dict[str, str]]
+    history: Optional[List[Dict[str, str]]] = None
     data: Optional[Dict[str, Any]] = None
 
 class ClarifyingContext(BaseContext):
@@ -51,7 +51,7 @@ class TaskContext(DomainContext):
     previous_tasks: Optional[List[TaskModel]] = None
 
 class AutomationContext(BaseContext):
-    tasks: List[TaskModel]
+    strategies: List[StrategyModel]
     knowledge_base: Dict[str, Any]
 
 # --- Meta Agents context ---#
@@ -96,7 +96,7 @@ class TasksAgentRequest(AgentRequest):
 
 class AutomationAgentRequest(AgentRequest):
     agent_name: Literal["automation"]
-    context: AutomationContext
+    context: TaskContext
 
 # --- Meta agent context --- #
 class KnowledgeBaseAgentRequest(AgentRequest):

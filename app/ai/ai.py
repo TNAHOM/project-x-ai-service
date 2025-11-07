@@ -118,7 +118,7 @@ class AI():
             domainAgent = self.llm.with_structured_output(output_schema.DomainAgentOutput)
             result_text = (domain_prompt | domainAgent).invoke({
                 "problem_space": json.dumps(context.problem_space.model_dump()),
-                "previous_strategies":  [strategies.model_dump() for strategies in context.previous_objectives] if context.previous_objectives else None,
+                "previous_objectives":  [objectives.model_dump() for objectives in context.previous_objectives] if context.previous_objectives else None,
                 "user_prompt": user_prompt,
                 "domain_profile": json.dumps(context.domain_profile.model_dump()),
                 "knowledge_base_summary": json.dumps(context.knowledge_base_summary)
@@ -156,19 +156,19 @@ class AI():
 
         return result_text
     
-    def automation_agent(self, context: input_schema.AutomationContext, user_prompt: str|None):
+    def automation_agent(self, context: input_schema.TaskContext, user_prompt: str|None):
         logger.info("Automation Agent Invoked with context:", extra={"context": context})
         try:
             automation_prompt = ChatPromptTemplate.from_messages([
                 HumanMessagePromptTemplate.from_template(prompt.AutomationAgentPrompt)
             ])
 
-            automationAgent = self.llm.with_structured_output(output_schema.AutomationAgentOutput)
+            automationAgent = self.llm.with_structured_output(output_schema.TasksAgentOutput)
         
             result_text = (automation_prompt | automationAgent).invoke({
-                "available_tools": json.dumps(prompt.AvailableTools),
-                "tasks": json.dumps([task.model_dump() for task in context.tasks]),
-                "knowledge_base": json.dumps(context.knowledge_base),
+                "available_tools": prompt.AvailableTools,
+                "strategies": json.dumps([strategy.model_dump() for strategy in context.strategies]),
+                "knowledge_base": json.dumps(context.knowledge_base_summary),
                 "history": json.dumps(context.history),
                 "data": json.dumps(context.data) if context.data else None,
                 "user_prompt": user_prompt,
