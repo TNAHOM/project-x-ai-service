@@ -1,3 +1,4 @@
+from token import OP
 from pydantic import BaseModel, Field
 import json
 from typing import Any, Dict, List, Optional, Union, Literal
@@ -11,11 +12,12 @@ AllowedDomains = ["finance", "personal", "professional"]
 class ProblemSpaceModel(BaseModel):
     name: str
     description: str
+    root_cause: str
     status: str = 'active'
 
 class DomainProfileModel(BaseModel):
     domain_type: str
-    personality: str
+    personality: Optional[str] = None
 
 class TaskModel(BaseModel):
     order: int
@@ -43,7 +45,7 @@ class ClassifyingContext(BaseContext):
 class DomainContext(ClarifyingContext):
     problem_space: ProblemSpaceModel
     domain_profile: DomainProfileModel # Use the new structured model
-    knowledge_base_summary: Optional[Dict[str, Any]] = None
+    user_memory_summary: Optional[Dict[str, Any]] = None
     previous_objectives: Optional[List[TaskModel]] = None
 
 class TaskContext(DomainContext):
@@ -52,18 +54,18 @@ class TaskContext(DomainContext):
 
 class AutomationContext(BaseContext):
     strategies: List[StrategyModel]
-    knowledge_base: Dict[str, Any]
+    user_memory: Dict[str, Any]
 
 class TaskClarificationContext(BaseContext):
     """The specific context needed for the ClarifyAutomationAgent."""
     task_to_clarify: TaskModel 
-    knowledge_base_summary: Optional[Dict[str, Any]] 
+    user_memory_summary: Optional[Dict[str, Any]] 
     
 
 
 # --- Meta Agents context ---#
-class KnowledgeBaseContext(BaseModel):
-    knowledge_base: Dict[str, Any]
+class UserMemoryContext(BaseModel):
+    user_memory: Dict[str, Any]
 
 class VentingContext(BaseModel):
     user_memory: List[Dict[str, Any]]
@@ -110,11 +112,15 @@ class ClarifyAutomationAgentRequest(AgentRequest):
     agent_name: Literal["clarify_automation"]
     context: TaskClarificationContext
 
+class ProblemSpaceRequest(AgentRequest):
+    agent_name: Literal["problem_space"]
+    context: ClassifyingContext
+
 
 # --- Meta agent context --- #
-class KnowledgeBaseAgentRequest(AgentRequest):
-    agent_name: Literal["knowledge_base"]
-    context: KnowledgeBaseContext
+class UserMemoryAgentRequest(AgentRequest):
+    agent_name: Literal["user_memory"]
+    context: UserMemoryContext
 
 class VentingAgentRequest(AgentRequest):
     agent_name: Literal["venting"]
@@ -125,6 +131,6 @@ class ExecutionAgentRequest(AgentRequest):
     context: Optional[ExecutionContext]
     
 AnyAgentRequest = Union[
-    ClarifyingAgentRequest, ClassifyingAgentRequest, DomainAgentRequest, TasksAgentRequest, KnowledgeBaseAgentRequest, VentingAgentRequest, AutomationAgentRequest, ExecutionAgentRequest, ClarifyAutomationAgentRequest
+    ClarifyingAgentRequest, ClassifyingAgentRequest, DomainAgentRequest, TasksAgentRequest, UserMemoryAgentRequest, VentingAgentRequest, AutomationAgentRequest, ExecutionAgentRequest, ClarifyAutomationAgentRequest, ProblemSpaceRequest
 ]
 

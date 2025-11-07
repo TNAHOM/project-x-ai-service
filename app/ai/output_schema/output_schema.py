@@ -164,10 +164,10 @@ class ExecutionAgentOutput(BaseModel):
 	task_results: List[TaskResults]
 
 
-class KnowledgeBaseAgentOutput(BaseModel):
-	"""Output for the Knowledge Base agent as specified in KnowledgeBaseAgentPrompt."""
+class UserMemoryAgentOutput(BaseModel):
+	"""Output for the Knowledge Base agent as specified in UserMemoryAgentPrompt."""
 
-	knowledge_base_entries: List[Dict[str, Any]] = Field(
+	user_memory_entries: List[Dict[str, Any]] = Field(
 		...,
 		description="List of knowledge base entries relevant to the user's context.",
 	)
@@ -189,7 +189,7 @@ __all__ = [
 	"DomainAgentOutput",
 	"TaskItemOutput",
 	"TasksAgentOutput",
-	"KnowledgeBaseAgentOutput",
+	"UserMemoryAgentOutput",
 	"VentingAgentOutput",
 	"ExecutionAgentOutput",
 	"AutomationAgentOutput",

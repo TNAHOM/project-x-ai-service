@@ -16,7 +16,7 @@ You have access to the following resources to inform your decision-making proces
 *   `{user_prompt}`: The raw, current request from the user. This is the primary driver for your action.
 *   `{history}`: A log of the previous interactions in this conversation.
 *   `{strategies}`: A list of high-level strategic plans that have been previously generated.
-*   `{knowledge_base}`: A collection of documents that can help you understand concepts and procedures.
+*   `{user_memory}`: A collection of documents that can help you understand concepts and procedures.
 *   `{data}`: Specific data files or records relevant to the user's immediate request.
 *   `{available_tools}`: A definitive list of software tools you can use for automation. Example: ["Notion create", "gmail", "calendar"].
 

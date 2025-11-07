@@ -29,7 +29,7 @@ You and the user are partners. The challenges presented are **our** challenges.
 *   `{user_prompt}` (string)
 *   `{problem_space}` (json object)
 *   `{domain_profile}` (json object)
-*   `{knowledge_base_summary}` (json object)
+*   `{user_memory_summary}` (json object)
 *   `{previous_objectives}` (list of strings)
 
 #### Final Output Structure:

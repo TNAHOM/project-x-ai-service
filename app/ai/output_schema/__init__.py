@@ -12,7 +12,7 @@ from .output_schema import (
 	TaskItemOutput,
 	TasksAgentOutput,
     AutomationAgentOutput,
-	KnowledgeBaseAgentOutput,
+	UserMemoryAgentOutput,
 	VentingAgentOutput,
     ClarifyAutomationAgentOutput,
     ExecutionAgentOutput
@@ -26,7 +26,7 @@ __all__ = [
 	"TaskItemOutput",
 	"TasksAgentOutput",
     "AutomationAgentOutput",
-	"KnowledgeBaseAgentOutput",
+	"UserMemoryAgentOutput",
 	"VentingAgentOutput",
     "ClarifyAutomationAgentOutput",
     "ExecutionAgentOutput"
