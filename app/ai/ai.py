@@ -87,11 +87,10 @@ class AI():
         
             classifyingAgent = self.llm.with_structured_output(output_schema.ClassifyingAgentOutput)
         
-            allowed_domains = json.dumps(input_schema.AllowedDomains)
 
             result_text = (classify_prompt | classifyingAgent).invoke({
                 "history": context.history,
-                "allowed_domains": allowed_domains
+                "allowed_domains": input_schema.AllowedDomains
             })
         except Exception as e:
             logger.error("Classify Agent failed", exc_info=e)
@@ -119,7 +118,7 @@ class AI():
             domainAgent = self.llm.with_structured_output(output_schema.DomainAgentOutput)
             result_text = (domain_prompt | domainAgent).invoke({
                 "problem_space": json.dumps(context.problem_space.model_dump()),
-                "previous_strategies":  [strategies.model_dump() for strategies in context.previous_strategies] if context.previous_strategies else None,
+                "previous_strategies":  [strategies.model_dump() for strategies in context.previous_objectives] if context.previous_objectives else None,
                 "user_prompt": user_prompt,
                 "domain_profile": json.dumps(context.domain_profile.model_dump()),
                 "knowledge_base_summary": json.dumps(context.knowledge_base_summary)

@@ -1,21 +1,19 @@
 {
   "mcpServers": {
     
-    "Notion": {
-      "url": "https://mcp.notion.com/mcp"
-    },
-    "google-docs": {
-      "command": "python3",
-      "args": [
-        "app/mcp/google-doc-sheet/tool.py"
-      ]
-    },
     "google-calendar": {
       "transport": "stdio",
-      "command": "python3",
+      "command": ".venv/bin/python",
       "args": [
-        "app/mcp/google-calendar-mcp/app.py"
-      ]
+        "-m",
+        "app.mcp.google-calendar-mcp.app"
+      ],
+      "cwd": "/home/binyammulat/Projects/Buddy_Ai/project-x-ai-service",
+      "env": {
+        "PYTHONUNBUFFERED": "1",
+        "GOOGLE_CREDENTIALS_PATH": "/home/binyammulat/Projects/Buddy_Ai/project-x-ai-service/app/mcp/google-calendar-mcp/credentials.json",
+        "MCP_USE_ANONYMIZED_TELEMETRY": "false"
+      }
     }
   }
 }

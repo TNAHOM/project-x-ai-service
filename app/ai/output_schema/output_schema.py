@@ -78,8 +78,43 @@ class ClassifyingAgentOutput(BaseModel):
 
 
 # --- Domain Agent ---
+class ExecutionTask(BaseModel):
+    """A single, atomic step in an execution plan."""
+
+    order: int = Field(
+        ..., description="The sequence order of the task, starting from 0."
+    )
+    name: str = Field(
+        ..., description="A short, clear name for the task."
+    )
+    description: str = Field(
+        ..., description="A detailed description of the action to be taken."
+    )
+    is_automated: bool = Field(
+        ..., description="Flag indicating if the task can be automated or requires manual user action."
+    )
+
+
+class KeyObjectiveWithPlan(BaseModel):
+    """
+    A single high-level strategic objective, including its research summary and a detailed execution plan.
+    """
+
+    objective_name: str = Field(
+        ..., description="The name of the high-level strategic objective."
+    )
+    research_summary: str = Field(
+        ..., description="A summary of the research findings that inform the execution plan for this objective."
+    )
+    execution_plan: List[ExecutionTask] = Field(
+        ..., description="A granular, step-by-step plan to achieve the strategic objective."
+    )
+
+
 class DomainStrategyOutput(BaseModel):
-    """Single strategy option produced by the Domain agent."""
+    """
+    A complete, high-level strategy, composed of multiple key objectives, each with its own detailed execution plan.
+    """
 
     strategy_name: str = Field(
         ..., description="Compelling strategy name that reflects the goal and user personality."
@@ -87,10 +122,9 @@ class DomainStrategyOutput(BaseModel):
     approach_summary: str = Field(
         ..., description="Concise 1-2 sentence summary of the strategy's core philosophy."
     )
-    key_objectives: List[str] = Field(
-        ..., min_length=7, max_length=10, description="List of 7-10 high-level strategic objectives."
+    key_objectives: List[KeyObjectiveWithPlan] = Field(
+        ..., description="List of high-level strategic objectives, each containing a researched execution plan."
     )
-
 
 class DomainAgentOutput(BaseModel):
     """Output for the Domain agent as specified in FinanceDomainAgentPrompt.
@@ -103,7 +137,7 @@ class DomainAgentOutput(BaseModel):
         min_length=1,
         description="Ordered list of strategy options tailored to the user's personality and goal.",
     )
-
+## --- Domain Agent ---
 
 # --- Tasks Agent ---
 class TaskItemOutput(BaseModel):

@@ -4,9 +4,21 @@ Pure Python class used by the MCP app entrypoint (see app.py).
 """
 
 import os
+import sys
 from pathlib import Path
 from typing import Any, Optional, cast
+import json
 from datetime import datetime, timedelta
+
+# Ensure we can import the shared app package when this module runs as a standalone
+# tool entrypoint.
+# Folder layout: <repo>/app/mcp/google-calendar-mcp/server.py
+# We need the REPO ROOT on sys.path so `import app.core.logger` works.
+CURRENT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = CURRENT_DIR.parents[3]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 from app.core.logger import logging
 from google.auth.transport.requests import Request
 from google.auth.credentials import Credentials as BaseCredentials
@@ -23,8 +35,18 @@ SCOPES = [
 ]
 
 # Paths for credentials (default to files alongside this script)
-TOKEN_PATH = os.environ.get("GOOGLE_TOKEN_PATH")
-CREDENTIALS_PATH = os.environ.get("GOOGLE_CREDENTIALS_PATH")
+# Normalize credential paths so downstream code can rely on pathlib operations.
+def _path_from_env(env_key: str, default: Path) -> Path:
+    raw_value = os.environ.get(env_key)
+    if raw_value:
+        candidate = Path(raw_value).expanduser()
+        if not candidate.is_absolute():
+            return (default.parent / candidate).resolve()
+        return candidate
+    return default.resolve()
+
+TOKEN_PATH = Path(__file__).parent / 'token.json'
+CREDENTIALS_PATH = Path(__file__).parent / 'credentials.json'
 logger.info(f"Using TOKEN_PATH: {TOKEN_PATH}, CREDENTIALS_PATH: {CREDENTIALS_PATH}")
 
 
@@ -36,6 +58,8 @@ class GoogleCalendarService:
         self.creds: Optional[BaseCredentials] = None
         # Use Any for service to avoid overly strict attribute typing on dynamic discovery resources
         self.service: Any = None
+        logger.info(f"Using TOKEN_PATH: {TOKEN_PATH}, CREDENTIALS_PATH: {CREDENTIALS_PATH}")
+
     
     def _get_credentials_path(self) -> Path:
         """Resolve OAuth client secrets path.
@@ -51,26 +75,40 @@ class GoogleCalendarService:
         
     def authenticate(self) -> bool:
         """Authenticate using OAuth 2.0"""
-        # Load existing credentials
-        if TOKEN_PATH.exists():
-            self.creds = Credentials.from_authorized_user_file(str(TOKEN_PATH), SCOPES)
+        # Try non-interactive token sources first to keep STDIO servers safe
+        token_json_env = os.environ.get("GOOGLE_TOKEN_JSON")
+        token_path_env = os.environ.get("GOOGLE_TOKEN_JSON_PATH")
+
+        # Load existing credentials (env JSON > env PATH > local token.json)
+        try:
+            if token_json_env:
+                info = json.loads(token_json_env)
+                self.creds = Credentials.from_authorized_user_info(info, SCOPES)
+            elif token_path_env and Path(token_path_env).expanduser().exists():
+                self.creds = Credentials.from_authorized_user_file(str(Path(token_path_env).expanduser()), SCOPES)
+            elif TOKEN_PATH.exists():
+                self.creds = Credentials.from_authorized_user_file(str(TOKEN_PATH), SCOPES)
+        except Exception as e:
+            # Do not expose sensitive data; just note failure to parse/load
+            logger.warning("Failed to load Google token credentials from env/path: %s", e)
         
         # Refresh or get new credentials
         if not self.creds or not self.creds.valid:
             if self.creds and getattr(self.creds, "expired", False) and getattr(self.creds, "refresh_token", None):
                 self.creds.refresh(Request())
             else:
+                # Interactive OAuth is NOT safe over STDIO servers. Avoid unless explicitly allowed.
                 cred_path = self._get_credentials_path()
                 if not cred_path.exists():
-                    env_hint = os.environ.get("GOOGLE_OAUTH_CLIENT_SECRETS")
+                    env_hint = os.environ.get("GOOGLE_CREDENTIALS_PATH")
                     msg = [
                         "Credentials file not found.",
                         f"Looked for: {cred_path}",
                     ]
                     if env_hint:
-                        msg.append("GOOGLE_OAUTH_CLIENT_SECRETS is set but the file was not found at that path.")
+                        msg.append("GOOGLE_CREDENTIALS_PATH is set but the file was not found at that path.")
                     msg.append(
-                        "Set GOOGLE_OAUTH_CLIENT_SECRETS to your OAuth client secrets JSON path, "
+                        "Set GOOGLE_CREDENTIALS_PATH to your OAuth client secrets JSON path, "
                         f"or place a 'credentials.json' next to this server at: {CREDENTIALS_PATH}"
                     )
                     raise FileNotFoundError("\n".join(msg))

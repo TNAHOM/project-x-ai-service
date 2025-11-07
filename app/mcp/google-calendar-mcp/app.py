@@ -1,15 +1,58 @@
 import json
+import sys
+from pathlib import Path
 from typing import Any
 
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import Tool, TextContent
 
-from server import GoogleCalendarService
+# Ensure the project root is on sys.path when this module is executed as a standalone script
+# Folder layout: <repo>/app/mcp/google-calendar-mcp/app.py
+# We need the REPO ROOT on sys.path so `import app.core.logger` works.
+CURRENT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = CURRENT_DIR.parents[3]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
+"""
+Initialize logging before importing the server module so any module-level logs
+in server.py (e.g., path resolutions) are emitted with the configured handlers.
+"""
+
+# Prefer the project's structured logger if available; otherwise, fall back to stdlib logging
+try:  # pragma: no cover - import shim for different execution contexts
+    from app.core.logger import get_logger, setup_logging  # type: ignore
+    # Configure logging for this subprocess (writes to stderr and file as configured)
+    setup_logging()
+    logger = get_logger(__name__)
+except Exception:  # pragma: no cover - fallback logger
+    import logging as _logging
+
+    _logging.basicConfig(
+        level=_logging.INFO,
+        format="[%(asctime)s] [%(levelname)s] %(name)s:%(lineno)d | %(message)s",
+    )
+
+    def get_logger(name: str):  # type: ignore
+        return _logging.getLogger(name)
+
+    logger = get_logger(__name__)
+
+# Prefer relative import when running as part of the package; fall back to local import
+# when executed directly in this folder.
+logger.info("Starting Google Calendar MCP server...")
+try:  # pragma: no cover - import shim
+    from .server import GoogleCalendarService
+except Exception:  # pragma: no cover - import shim
+    from server import GoogleCalendarService
+
+logger.info("Imported GoogleCalendarService successfully.")
 # Initialize MCP server and Google Calendar service
+
 app = Server("google-calendar-mcp")
 gcal = GoogleCalendarService()
+logger.info("Initialized GoogleCalendarService successfully., %s", gcal)
 
 
 @app.list_tools()

@@ -41,10 +41,10 @@ class ClassifyingContext(BaseContext):
     pass
 
 class DomainContext(ClarifyingContext):
-    domain_profile: DomainProfileModel # Use the new structured model
     problem_space: ProblemSpaceModel
-    previous_strategies: Optional[List[StrategyModel]] = None
+    domain_profile: DomainProfileModel # Use the new structured model
     knowledge_base_summary: Optional[Dict[str, Any]] = None
+    previous_objectives: Optional[List[TaskModel]] = None
 
 class TaskContext(DomainContext):
     strategies: List[StrategyModel]
