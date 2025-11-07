@@ -41,14 +41,34 @@ Your entire response MUST be a JSON object that strictly follows the required ou
     "strategy_name": "The Automated Wealth Engine",
     "approach_summary": "An optimization-oriented OS designed to systematically increase net worth by automating key financial processes, optimizing asset allocation, and minimizing tax liabilities.",
     "key_objectives": [
-      "Establish a fully automated investment pipeline from checking to diversified portfolios.",
-      "Consolidate all high-interest debt into a single, lower-interest loan.",
-      "Maximize contributions to all available tax-advantaged retirement accounts.",
-      "Build and maintain a 6-month liquidity buffer in a high-yield savings account.",
-      "Implement a system for quarterly portfolio rebalancing to maintain target asset allocation.",
-      "Conduct an annual review of all recurring subscriptions and insurance policies to eliminate waste.",
-      "Develop a strategy for tax-loss harvesting to offset capital gains.",
-      "Create a clear set of rules for making significant financial decisions."
+        {{
+            "objective_name": "Automate Income Streams",
+            "objective_description": "Set up automated systems for all income sources to ensure consistent cash flow without manual intervention."
+        }},
+        {{
+            "objective_name": "Optimize Asset Allocation",
+            "objective_description": "Regularly review and adjust the portfolio to maintain an optimal balance between risk and return based on market conditions."
+        }},
+        {{
+            "objective_name": "Implement Tax Efficiency Strategies",
+            "objective_description": "Utilize tax-advantaged accounts and strategies to minimize tax liabilities and maximize after-tax returns."
+        }},
+        {{
+            "objective_name": "Establish Emergency Fund",
+            "objective_description": "Create a liquid emergency fund covering at least six months of living expenses to ensure financial resilience."
+        }},
+        {{
+            "objective_name": "Leverage Technology for Financial Management",
+            "objective_description": "Adopt cutting-edge financial management tools and software to streamline budgeting, tracking, and reporting."
+        }},
+        {{
+            "objective_name": "Diversify Investment Portfolio",
+            "objective_description": "Expand investments across various asset classes and geographies to reduce risk and enhance growth potential."
+        }},
+        {{
+            "objective_name": "Regular Financial Health Checkups",
+            "objective_description": "Schedule quarterly reviews of financial status, goals, and strategies to ensure alignment with long-term objectives."
+        }}
     ]
   }}
 ]

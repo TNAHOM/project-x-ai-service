@@ -182,6 +182,29 @@ class AI():
 
         return result_text
     
+    def clarify_automation_agent(self, context: input_schema.TaskClarificationContext, user_prompt: str|None):
+        logger.info("Clarify Automation Agent Invoked with context:", extra={"context": context})
+        try:
+            clarify_automation_prompt = ChatPromptTemplate.from_messages([
+                HumanMessagePromptTemplate.from_template(prompt.ClarifyAutomationAgentPrompt)
+            ])
+
+            clarifyAutomationAgent = self.llm.with_structured_output(output_schema.ClarifyAutomationAgentOutput)
+        
+            result_text = (clarify_automation_prompt | clarifyAutomationAgent).invoke({
+                "available_tools": prompt.AvailableTools,
+                "task_to_clarify": json.dumps(context.task_to_clarify.model_dump()),
+                "knowledge_base_summary": json.dumps(context.knowledge_base_summary) if context.knowledge_base_summary else None,
+                "history": json.dumps(context.history),
+                "user_prompt": user_prompt
+            })
+
+        except Exception as e:
+            logger.error("Clarify Automation Agent failed", exc_info=e)
+            raise
+
+        return result_text
+    
     async def execution_agent(self, context: input_schema.ExecutionContext, user_prompt: str|None):
         agent_service = ExecutionAgentService()
         response = await agent_service.run_agent(context, user_prompt)

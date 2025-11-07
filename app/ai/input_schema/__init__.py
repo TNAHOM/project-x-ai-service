@@ -14,6 +14,7 @@ from .schema import (
 	DomainContext,
 	TaskContext,
     AutomationContext,
+    TaskClarificationContext,
 	KnowledgeBaseContext,
 	VentingContext,
     ExecutionContext,
@@ -22,6 +23,7 @@ from .schema import (
 	ClassifyingAgentRequest,
 	DomainAgentRequest,
 	TasksAgentRequest,
+    AutomationAgentRequest,
 	KnowledgeBaseAgentRequest,
 	VentingAgentRequest,
     ExecutionAgentRequest,
@@ -38,6 +40,7 @@ __all__ = [
 	"DomainContext",
 	"TaskContext",
     "AutomationContext",
+    "TaskClarificationContext",
 	"KnowledgeBaseContext",
 	"VentingContext",
     "ExecutionContext",
@@ -49,6 +52,7 @@ __all__ = [
 	"KnowledgeBaseAgentRequest",
 	"VentingAgentRequest",
     "ExecutionAgentRequest",
+    "AutomationAgentRequest",
 	"AnyAgentRequest"
 ]
 

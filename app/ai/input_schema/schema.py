@@ -54,6 +54,13 @@ class AutomationContext(BaseContext):
     strategies: List[StrategyModel]
     knowledge_base: Dict[str, Any]
 
+class TaskClarificationContext(BaseContext):
+    """The specific context needed for the ClarifyAutomationAgent."""
+    task_to_clarify: TaskModel 
+    knowledge_base_summary: Optional[Dict[str, Any]] 
+    
+
+
 # --- Meta Agents context ---#
 class KnowledgeBaseContext(BaseModel):
     knowledge_base: Dict[str, Any]
@@ -98,6 +105,12 @@ class AutomationAgentRequest(AgentRequest):
     agent_name: Literal["automation"]
     context: TaskContext
 
+class ClarifyAutomationAgentRequest(AgentRequest):
+    """The request model for the ClarifyAutomationAgent."""
+    agent_name: Literal["clarify_automation"]
+    context: TaskClarificationContext
+
+
 # --- Meta agent context --- #
 class KnowledgeBaseAgentRequest(AgentRequest):
     agent_name: Literal["knowledge_base"]
@@ -112,6 +125,6 @@ class ExecutionAgentRequest(AgentRequest):
     context: Optional[ExecutionContext]
     
 AnyAgentRequest = Union[
-    ClarifyingAgentRequest, ClassifyingAgentRequest, DomainAgentRequest, TasksAgentRequest, KnowledgeBaseAgentRequest, VentingAgentRequest, AutomationAgentRequest, ExecutionAgentRequest
+    ClarifyingAgentRequest, ClassifyingAgentRequest, DomainAgentRequest, TasksAgentRequest, KnowledgeBaseAgentRequest, VentingAgentRequest, AutomationAgentRequest, ExecutionAgentRequest, ClarifyAutomationAgentRequest
 ]
 

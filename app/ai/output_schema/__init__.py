@@ -14,6 +14,7 @@ from .output_schema import (
     AutomationAgentOutput,
 	KnowledgeBaseAgentOutput,
 	VentingAgentOutput,
+    ClarifyAutomationAgentOutput,
     ExecutionAgentOutput
 )
 
@@ -27,6 +28,7 @@ __all__ = [
     "AutomationAgentOutput",
 	"KnowledgeBaseAgentOutput",
 	"VentingAgentOutput",
+    "ClarifyAutomationAgentOutput",
     "ExecutionAgentOutput"
 ]
 
