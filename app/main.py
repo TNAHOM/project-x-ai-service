@@ -32,14 +32,18 @@ async def lifespan(app: FastAPI):
         
 app = FastAPI(title="AI Agent Microservice", version='1.0', lifespan=lifespan)
 
-origins = ["http://localhost:8000"]
+origins = [
+    "http://127.0.0.1:8000",
+    "http://localhost:8000"
+]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins, allow_credentials=True,
-    allow_methods=["*"], allow_headers=["*"],
+    allow_origins=origins,          # or ["*"] temporarily for testing
+    allow_credentials=True,
+    allow_methods=["*"],            # allow all HTTP methods
+    allow_headers=["*"],            # allow all headers (e.g. Content-Type)
 )
-
 app.include_router(agent_router.router, prefix="/agent", tags=["Agent"])
 app.include_router(ai_router.router, prefix="/ai", tags=["AI"])
 
