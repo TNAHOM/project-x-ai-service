@@ -165,11 +165,29 @@ class ExecutionAgentOutput(BaseModel):
 
 
 class UserMemoryAgentOutput(BaseModel):
-	"""Output for the Knowledge Base agent as specified in UserMemoryAgentPrompt."""
+	"""Enhanced output for the User Memory agent.
 
+	The agent now performs extraction & summarization of user-specific facts from
+	conversation history and existing memory. It returns:
+	- summary: high-level natural language recap
+	- extracted_facts: structured key/value or category lists (finance, preferences, schedule, etc.)
+	- user_memory_entries: any raw/relevant entries referenced or newly created
+	- timestamp: ISO8601 string of when the snapshot was generated
+	"""
+
+	summary: Optional[str] = Field(
+		None, description="High-level summary of the most salient user facts just extracted."
+	)
+	extracted_facts: Dict[str, Any] = Field(
+		default_factory=dict,
+		description="Structured categories of user facts (e.g., finance, preferences, habits, goals)."
+	)
 	user_memory_entries: List[Dict[str, Any]] = Field(
-		...,
-		description="List of knowledge base entries relevant to the user's context.",
+		default_factory=list,
+		description="Raw or normalized memory entries relevant to or created from this pass.",
+	)
+	timestamp: Optional[str] = Field(
+		None, description="UTC ISO timestamp when this memory snapshot was generated."
 	)
 
 class VentingAgentOutput(BaseModel):

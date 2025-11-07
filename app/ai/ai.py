@@ -213,7 +213,7 @@ class AI():
 
     
     def user_memory_agent(self, context: input_schema.UserMemoryContext, user_prompt: str|None):
-        self.logger.info("Knowledge Base Agent Invoked with context:", extra={"context": context.model_dump()})
+        self.logger.info("User Memory Agent Invoked with context:", extra={"context": context.model_dump()})
         try:
             kb_prompt = ChatPromptTemplate.from_messages([
                 HumanMessagePromptTemplate.from_template(prompt.UserMemoryAgentPrompt)
@@ -221,16 +221,20 @@ class AI():
 
             UserMemoryAgent = self.llm.with_structured_output(output_schema.UserMemoryAgentOutput)
         
-            result_text = (kb_prompt | UserMemoryAgent).invoke({
-                "user_memory": json.dumps(context.user_memory)
-                ,"user_prompt": user_prompt
+            result = (kb_prompt | UserMemoryAgent).invoke({
+                "user_memory": json.dumps(context.user_memory),
+                "user_prompt": user_prompt,
+                "history": json.dumps(context.history) if context.history else json.dumps([]),
             })
 
+            # Ensure validated output (in case provider returns dict)
+            validated = output_schema.UserMemoryAgentOutput.model_validate(result)
+
         except Exception as e:
-            self.logger.error("Knowledge Base Agent failed", exc_info=e)
+            self.logger.error("User Memory Agent failed", exc_info=e)
             raise
 
-        return result_text
+        return validated
     
     def venting_agent(self, context: input_schema.VentingContext, user_prompt: str|None):
         self.logger.info("Venting Agent Invoked with context:", extra={"context": context.model_dump()})

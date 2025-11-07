@@ -64,7 +64,12 @@ class TaskClarificationContext(BaseContext):
 
 
 # --- Meta Agents context ---#
-class UserMemoryContext(BaseModel):
+class UserMemoryContext(BaseContext):
+    """Context for the User Memory Agent.
+
+    Accepts optional conversation history/data via BaseContext and any existing
+    user memory store to allow incremental updates/merges.
+    """
     user_memory: Dict[str, Any]
 
 class VentingContext(BaseModel):
