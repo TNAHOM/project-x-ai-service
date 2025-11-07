@@ -78,6 +78,16 @@ class ClassifyingAgentOutput(BaseModel):
 
 
 # --- Domain Agent ---
+# --- Domain Agent ---
+class ObjectiveOutput(BaseModel):
+	"""Single high-level objective as produced by the Domain agent."""
+
+	objective_name: str = Field(
+		..., description="Concise name of the strategic objective."
+	)
+	objective_description: str = Field(
+		..., description="Detailed description explaining the importance and intended outcome of the objective."
+	)
 class DomainStrategyOutput(BaseModel):
     """Single strategy option produced by the Domain agent."""
 
@@ -87,7 +97,7 @@ class DomainStrategyOutput(BaseModel):
     approach_summary: str = Field(
         ..., description="Concise 1-2 sentence summary of the strategy's core philosophy."
     )
-    key_objectives: List[str] = Field(
+    key_objectives: List[ObjectiveOutput] = Field(
         ..., min_length=7, max_length=10, description="List of 7-10 high-level strategic objectives."
     )
 
@@ -102,8 +112,8 @@ class DomainAgentOutput(BaseModel):
         ...,
         min_length=1,
         description="Ordered list of strategy options tailored to the user's personality and goal.",
-    )
-
+    )	
+## --- Domain Agent ---
 
 # --- Tasks Agent ---
 class TaskItemOutput(BaseModel):
@@ -140,6 +150,19 @@ class AutomationAgentOutput(BaseModel):
 	automation_result: Optional[str]
 	task_result: Optional[TaskResults]
 
+class ClarifyAutomationAgentOutput(BaseModel):
+	"""The output of the ClarifyAutomationAgent, providing questions to gather necessary parameters."""
+	need_more_context: bool = False
+	clarification_summary: str = Field(
+		..., description="A one-sentence summary explaining why more information is needed to automate the task."
+	)
+	clarifying_questions: List[str] = Field(
+		..., description="A list of short, direct questions for the user to answer. This list can be empty if no clarification is needed."
+	)
+
+class ExecutionAgentOutput(BaseModel):
+	task_results: List[TaskResults]
+
 
 class KnowledgeBaseAgentOutput(BaseModel):
 	"""Output for the Knowledge Base agent as specified in KnowledgeBaseAgentPrompt."""
@@ -167,6 +190,9 @@ __all__ = [
 	"TaskItemOutput",
 	"TasksAgentOutput",
 	"KnowledgeBaseAgentOutput",
-	"VentingAgentOutput"
+	"VentingAgentOutput",
+	"ExecutionAgentOutput",
+	"AutomationAgentOutput",
+	"ClarifyAutomationAgentOutput"
 ]
 
