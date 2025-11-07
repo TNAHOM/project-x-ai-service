@@ -2,15 +2,17 @@ from venv import logger
 from fastapi import FastAPI, Body
 from pydantic import BaseModel, Field
 import json
-from typing import Any, Dict, List, Optional, Union, Literal
-from fastapi.middleware.cors import CORSMiddleware
 from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
 from langchain.chat_models import init_chat_model
 from langchain_core.globals import set_debug
 import os
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_perplexity import ChatPerplexity
 from app.ai import output_schema, input_schema, prompt
 from dotenv import load_dotenv
+from app.services.ExecutionAgentService import ExecutionAgentService
+from app.api.schemas.mcp_schema import ChatRequest
+
 load_dotenv()
 set_debug(True)
 
@@ -18,6 +20,7 @@ class AI():
     def __init__(self):
         # self.model = init_chat_model("gemini-2.5-flash", model_provider="google_genai", temperature=0.1, top_p = 0.5)
         self.llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
+        self.perplexity_llm = ChatPerplexity(temperature=0, model="sonar", timeout=1800)
 
     def parse_json_like_content(self, input_text):
         """
@@ -84,11 +87,10 @@ class AI():
         
             classifyingAgent = self.llm.with_structured_output(output_schema.ClassifyingAgentOutput)
         
-            allowed_domains = json.dumps(input_schema.AllowedDomains)
 
             result_text = (classify_prompt | classifyingAgent).invoke({
                 "history": context.history,
-                "allowed_domains": allowed_domains
+                "allowed_domains": input_schema.AllowedDomains
             })
         except Exception as e:
             logger.error("Classify Agent failed", exc_info=e)
@@ -116,7 +118,7 @@ class AI():
             domainAgent = self.llm.with_structured_output(output_schema.DomainAgentOutput)
             result_text = (domain_prompt | domainAgent).invoke({
                 "problem_space": json.dumps(context.problem_space.model_dump()),
-                "previous_strategies":  [strategies.model_dump() for strategies in context.previous_strategies] if context.previous_strategies else None,
+                "previous_objectives":  [objectives.model_dump() for objectives in context.previous_objectives] if context.previous_objectives else None,
                 "user_prompt": user_prompt,
                 "domain_profile": json.dumps(context.domain_profile.model_dump()),
                 "knowledge_base_summary": json.dumps(context.knowledge_base_summary)
@@ -138,7 +140,8 @@ class AI():
                 HumanMessagePromptTemplate.from_template(prompt.TasksAgentPrompt),
             ])
 
-            taskAgent = self.llm.with_structured_output(output_schema.TasksAgentOutput)
+            taskAgent = self.perplexity_llm.with_structured_output(output_schema.TasksAgentOutput)
+            
             result_text = (task_prompt | taskAgent).invoke({
                 "problem_space": json.dumps(context.problem_space.model_dump()),
                 "domain_profile": json.dumps(context.domain_profile.model_dump()),
@@ -152,6 +155,61 @@ class AI():
             raise
 
         return result_text
+    
+    def automation_agent(self, context: input_schema.TaskContext, user_prompt: str|None):
+        logger.info("Automation Agent Invoked with context:", extra={"context": context})
+        try:
+            automation_prompt = ChatPromptTemplate.from_messages([
+                HumanMessagePromptTemplate.from_template(prompt.AutomationAgentPrompt)
+            ])
+
+            automationAgent = self.llm.with_structured_output(output_schema.TasksAgentOutput)
+        
+            result_text = (automation_prompt | automationAgent).invoke({
+                "available_tools": prompt.AvailableTools,
+                "strategies": json.dumps([strategy.model_dump() for strategy in context.strategies]),
+                "knowledge_base": json.dumps(context.knowledge_base_summary),
+                "history": json.dumps(context.history),
+                "data": json.dumps(context.data) if context.data else None,
+                "user_prompt": user_prompt,
+
+
+            })
+
+        except Exception as e:
+            logger.error("Automation Agent failed", exc_info=e)
+            raise
+
+        return result_text
+    
+    def clarify_automation_agent(self, context: input_schema.TaskClarificationContext, user_prompt: str|None):
+        logger.info("Clarify Automation Agent Invoked with context:", extra={"context": context})
+        try:
+            clarify_automation_prompt = ChatPromptTemplate.from_messages([
+                HumanMessagePromptTemplate.from_template(prompt.ClarifyAutomationAgentPrompt)
+            ])
+
+            clarifyAutomationAgent = self.llm.with_structured_output(output_schema.ClarifyAutomationAgentOutput)
+        
+            result_text = (clarify_automation_prompt | clarifyAutomationAgent).invoke({
+                "available_tools": prompt.AvailableTools,
+                "task_to_clarify": json.dumps(context.task_to_clarify.model_dump()),
+                "knowledge_base_summary": json.dumps(context.knowledge_base_summary) if context.knowledge_base_summary else None,
+                "history": json.dumps(context.history),
+                "user_prompt": user_prompt
+            })
+
+        except Exception as e:
+            logger.error("Clarify Automation Agent failed", exc_info=e)
+            raise
+
+        return result_text
+    
+    async def execution_agent(self, context: input_schema.ExecutionContext, user_prompt: str|None):
+        agent_service = ExecutionAgentService()
+        response = await agent_service.run_agent(context, user_prompt)
+        return response
+
     
     def knowledge_base_agent(self, context: input_schema.KnowledgeBaseContext, user_prompt: str|None):
         logger.info("Knowledge Base Agent Invoked with context:", extra={"context": context})

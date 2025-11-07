@@ -7,10 +7,10 @@ from app.services.mcp_service import process_chat_request_non_stream
 logger = get_logger(__name__)
 
 
-@tool(
-    description="Creates a Notion page with the provided content. Requires a title and content.",
-    parse_docstring=True,
-)
+# @tool(
+#     description="Creates a Notion page with the provided content. Requires a title and content.",
+#     parse_docstring=True,
+# )
 async def create_notion_page(request: ChatRequest) -> dict:
     """
     Create a Notion page with the given request that contains title, contents and type (using the ChatRequest schema).
@@ -28,10 +28,10 @@ async def create_notion_page(request: ChatRequest) -> dict:
         return {"status": "error", "message": str(e)}
     
 # google doc and sheet creation tools can be added similarly in future
-@tool(
-    description="Creates a Google Doc or Google sheet with the provided content. Requires a title and content.",
-    parse_docstring=True,
-)
+# @tool(
+#     description="Creates a Google Doc or Google sheet with the provided content. Requires a title and content.",
+#     parse_docstring=True,
+# )
 async def create_google_doc(request: ChatRequest) -> dict:
     """
     GCreate a Google Doc and google sheet with the given request that contains title, contents and type (using the ChatRequest schema).

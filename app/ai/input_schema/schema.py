@@ -1,7 +1,9 @@
 from pydantic import BaseModel, Field
 import json
 from typing import Any, Dict, List, Optional, Union, Literal
+from regex import T
 from sqlalchemy import Enum
+from pydantic import BaseModel, Field, field_validator 
 
 AllowedDomains = ["finance", "personal", "professional"]
     
@@ -28,22 +30,36 @@ class StrategyModel(BaseModel):
     key_objectives: List[str]
 
 # --- Base Models for Context (Simplified) ---
-class ClarifyingContext(BaseModel):
-    history: List[Dict[str, str]]
+class BaseContext(BaseModel):
+    history: Optional[List[Dict[str, str]]] = None
     data: Optional[Dict[str, Any]] = None
 
-class ClassifyingContext(ClarifyingContext):
+class ClarifyingContext(BaseContext):
+    pass
+
+class ClassifyingContext(BaseContext):
     pass
 
 class DomainContext(ClarifyingContext):
-    domain_profile: DomainProfileModel # Use the new structured model
     problem_space: ProblemSpaceModel
-    previous_strategies: Optional[List[StrategyModel]] = None
+    domain_profile: DomainProfileModel # Use the new structured model
     knowledge_base_summary: Optional[Dict[str, Any]] = None
+    previous_objectives: Optional[List[TaskModel]] = None
 
 class TaskContext(DomainContext):
     strategies: List[StrategyModel]
     previous_tasks: Optional[List[TaskModel]] = None
+
+class AutomationContext(BaseContext):
+    strategies: List[StrategyModel]
+    knowledge_base: Dict[str, Any]
+
+class TaskClarificationContext(BaseContext):
+    """The specific context needed for the ClarifyAutomationAgent."""
+    task_to_clarify: TaskModel 
+    knowledge_base_summary: Optional[Dict[str, Any]] 
+    
+
 
 # --- Meta Agents context ---#
 class KnowledgeBaseContext(BaseModel):
@@ -52,6 +68,17 @@ class KnowledgeBaseContext(BaseModel):
 class VentingContext(BaseModel):
     user_memory: List[Dict[str, Any]]
     history: List[str]
+
+class ExecutionContext(BaseModel):
+    """
+        Schema For Incoming Chat Requests from the Frontend 
+        That contains title, contents and type of tool to be used.
+    """
+    title: Optional[str] = None
+    contents: Optional[str] = None
+    type: Optional[str] = None
+    # --- Add Notion Mode ----
+    
 
 # --- Request Models (Updated to use new models) ---
 class AgentRequest(BaseModel):
@@ -74,6 +101,16 @@ class TasksAgentRequest(AgentRequest):
     agent_name: Literal["tasks"]
     context: TaskContext
 
+class AutomationAgentRequest(AgentRequest):
+    agent_name: Literal["automation"]
+    context: TaskContext
+
+class ClarifyAutomationAgentRequest(AgentRequest):
+    """The request model for the ClarifyAutomationAgent."""
+    agent_name: Literal["clarify_automation"]
+    context: TaskClarificationContext
+
+
 # --- Meta agent context --- #
 class KnowledgeBaseAgentRequest(AgentRequest):
     agent_name: Literal["knowledge_base"]
@@ -82,8 +119,12 @@ class KnowledgeBaseAgentRequest(AgentRequest):
 class VentingAgentRequest(AgentRequest):
     agent_name: Literal["venting"]
     context: VentingContext
+
+class ExecutionAgentRequest(AgentRequest):
+    agent_name: Literal["execution"]
+    context: Optional[ExecutionContext]
     
 AnyAgentRequest = Union[
-    ClarifyingAgentRequest, ClassifyingAgentRequest, DomainAgentRequest, TasksAgentRequest, KnowledgeBaseAgentRequest, VentingAgentRequest  
+    ClarifyingAgentRequest, ClassifyingAgentRequest, DomainAgentRequest, TasksAgentRequest, KnowledgeBaseAgentRequest, VentingAgentRequest, AutomationAgentRequest, ExecutionAgentRequest, ClarifyAutomationAgentRequest
 ]
 

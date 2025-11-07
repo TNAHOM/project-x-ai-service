@@ -18,7 +18,7 @@ async def lifespan(app: FastAPI):
     # --- Startup ----
     try:
         logger.info("Initializing MCP client...")
-        await initialize_mcp_client()
+        # await initialize_mcp_client()
         yield
     finally:
         logger.info("🛑 FastAPI app shutting down.")
@@ -26,7 +26,7 @@ async def lifespan(app: FastAPI):
         try:
             logger.info("Closing MCP client...")
             # Best-effort shutdown with timeout; avoid propagating cancellation during reload/Ctrl+C
-            await close_mcp_client(timeout=5.0)
+            # await close_mcp_client(timeout=5.0)
         except asyncio.CancelledError:
             logger.warning("⚠️ Lifespan shutdown cancelled during MCP client close; continuing app shutdown.")
         
