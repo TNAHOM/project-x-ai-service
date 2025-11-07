@@ -8,7 +8,7 @@ from .ClarifyingPrompts import ClarifyingAgentPrompt
 from .ClassifyingPrompt import ClassifyingAgentPrompt
 from .DomainPrompts import FinanceDomainAgentPrompt, PersonalDomainAgentPrompt, ProfessionalDomainAgentPrompt
 from .TasksPrompt import TasksAgentPrompt
-from .KnowledgeBasePrompt import KnowledgeBaseAgentPrompt
+from .UserMemoryPrompt import UserMemoryAgentPrompt
 from .VentingPrompt import VentingAgentPrompt
 from .AutomationPrompts import AutomationAgentPrompt, AvailableTools
 from .ClarifyAutomationPrompts import ClarifyAutomationAgentPrompt
@@ -22,7 +22,7 @@ __all__ = [
 	"TasksAgentPrompt",
     "AutomationAgentPrompt",
     "AvailableTools",
-	"KnowledgeBaseAgentPrompt",
+	"UserMemoryAgentPrompt",
 	"VentingAgentPrompt",
     "ClarifyAutomationAgentPrompt"
 	

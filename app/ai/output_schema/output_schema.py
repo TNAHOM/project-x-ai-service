@@ -164,22 +164,46 @@ class ExecutionAgentOutput(BaseModel):
 	task_results: List[TaskResults]
 
 
-class KnowledgeBaseAgentOutput(BaseModel):
-	"""Output for the Knowledge Base agent as specified in KnowledgeBaseAgentPrompt."""
+class UserMemoryAgentOutput(BaseModel):
+	"""Enhanced output for the User Memory agent.
 
-	knowledge_base_entries: List[Dict[str, Any]] = Field(
-		...,
-		description="List of knowledge base entries relevant to the user's context.",
+	The agent now performs extraction & summarization of user-specific facts from
+	conversation history and existing memory. It returns:
+	- summary: high-level natural language recap
+	- extracted_facts: structured key/value or category lists (finance, preferences, schedule, etc.)
+	- user_memory_entries: any raw/relevant entries referenced or newly created
+	- timestamp: ISO8601 string of when the snapshot was generated
+	"""
+
+	summary: Optional[str] = Field(
+		None, description="High-level summary of the most salient user facts just extracted."
+	)
+	extracted_facts: Dict[str, Any] = Field(
+		default_factory=dict,
+		description="Structured categories of user facts (e.g., finance, preferences, habits, goals)."
+	)
+	user_memory_entries: List[Dict[str, Any]] = Field(
+		default_factory=list,
+		description="Raw or normalized memory entries relevant to or created from this pass.",
+	)
+	timestamp: Optional[str] = Field(
+		None, description="UTC ISO timestamp when this memory snapshot was generated."
 	)
 
 class VentingAgentOutput(BaseModel):
-	"""Output for the Venting agent as specified in VentingAgentPrompt."""
+	"""Therapeutic clarifying agent + problem space detector.
 
-	emotional_response: str = Field(
-		..., description="A supportive and empathetic response to the user's venting."
+	Produces only clarifying questions (therapeutic tone) and signals readiness
+	to construct a structured problem space.
+	"""
+	is_problem_space: bool = Field(
+		False, description="Whether sufficient context exists to form a structured problem space."
 	)
-	coping_strategies: List[str] = Field(
-		..., description="List of practical coping strategies tailored to the user's situation."
+	clarifying_questions: List[str] = Field(
+		default_factory=list, description="Therapeutic, specific questions to fill missing context."
+	)
+	problem_space: Optional[ProblemSpaceOutput] = Field(
+		None, description="Proposed structured problem space when is_problem_space is true."
 	)
 
 __all__ = [
@@ -189,7 +213,7 @@ __all__ = [
 	"DomainAgentOutput",
 	"TaskItemOutput",
 	"TasksAgentOutput",
-	"KnowledgeBaseAgentOutput",
+	"UserMemoryAgentOutput",
 	"VentingAgentOutput",
 	"ExecutionAgentOutput",
 	"AutomationAgentOutput",
