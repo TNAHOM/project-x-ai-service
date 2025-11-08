@@ -14,21 +14,21 @@ slack = SlackService()
 
 @app.list_tools()
 async def list_tools() -> list[Tool]:
-    """List available Slack tools"""
+    """List available Slack tools - all operations use user token (xoxp-)"""
     return [
         Tool(
             name="send-message",
-            description="Send a message to a Slack channel or user",
+            description="Send a message as the authenticated user to a Slack channel or user",
             inputSchema={
                 "type": "object",
                 "properties": {
                     "channel": {
                         "type": "string",
-                        "description": "Channel ID or name (e.g., 'C1234567890' or '#general')"
+                        "description": "Channel ID (C...), channel name (#general), or user ID (U...) for DMs"
                     },
                     "text": {
                         "type": "string",
-                        "description": "Message text to send"
+                        "description": "Message text (supports Slack markdown)"
                     },
                     "threadTs": {
                         "type": "string",
@@ -39,20 +39,47 @@ async def list_tools() -> list[Tool]:
             }
         ),
         Tool(
+            name="send-dm",
+            description="Send a direct message as the authenticated user",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "userId": {
+                        "type": "string",
+                        "description": "User ID to send DM to (format: U1234567890)"
+                    },
+                    "text": {
+                        "type": "string",
+                        "description": "Message text"
+                    },
+                    "threadTs": {
+                        "type": "string",
+                        "description": "Thread timestamp for replies (optional)"
+                    }
+                },
+                "required": ["userId", "text"]
+            }
+        ),
+        Tool(
             name="list-channels",
-            description="List all Slack channels",
+            description="List all Slack channels accessible to the authenticated user",
             inputSchema={
                 "type": "object",
                 "properties": {
                     "types": {
                         "type": "string",
-                        "description": "Comma-separated list of channel types",
+                        "description": "Comma-separated channel types: public_channel, private_channel, mpim, im",
                         "default": "public_channel,private_channel"
                     },
                     "limit": {
                         "type": "integer",
                         "description": "Maximum number of channels to return",
-                        "default": 100
+                        "default": 200
+                    },
+                    "excludeArchived": {
+                        "type": "boolean",
+                        "description": "Exclude archived channels",
+                        "default": True
                     }
                 }
             }
@@ -70,7 +97,7 @@ async def list_tools() -> list[Tool]:
                     "limit": {
                         "type": "integer",
                         "description": "Number of messages to retrieve",
-                        "default": 10
+                        "default": 100
                     },
                     "oldest": {
                         "type": "string",
@@ -109,13 +136,13 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="search-messages",
-            description="Search for messages across the workspace",
+            description="Search for messages across the workspace (based on user's access)",
             inputSchema={
                 "type": "object",
                 "properties": {
                     "query": {
                         "type": "string",
-                        "description": "Search query"
+                        "description": "Search query (e.g., 'from:@john in:#general meeting')"
                     },
                     "count": {
                         "type": "integer",
@@ -140,7 +167,7 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="update-message",
-            description="Update an existing message",
+            description="Update an existing message (user can only update their own messages)",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -162,7 +189,7 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="delete-message",
-            description="Delete a message",
+            description="Delete a message (user can only delete their own messages)",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -180,7 +207,7 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="add-reaction",
-            description="Add an emoji reaction to a message",
+            description="Add an emoji reaction to a message as the authenticated user",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -194,7 +221,29 @@ async def list_tools() -> list[Tool]:
                     },
                     "name": {
                         "type": "string",
-                        "description": "Emoji name (without colons, e.g., 'thumbsup')"
+                        "description": "Emoji name without colons (e.g., 'thumbsup', 'tada', 'eyes')"
+                    }
+                },
+                "required": ["channel", "timestamp", "name"]
+            }
+        ),
+        Tool(
+            name="remove-reaction",
+            description="Remove an emoji reaction from a message",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "channel": {
+                        "type": "string",
+                        "description": "Channel ID"
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "description": "Message timestamp"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Emoji name without colons"
                     }
                 },
                 "required": ["channel", "timestamp", "name"]
@@ -222,7 +271,7 @@ async def list_tools() -> list[Tool]:
                 "properties": {
                     "userId": {
                         "type": "string",
-                        "description": "User ID"
+                        "description": "User ID (format: U1234567890)"
                     }
                 },
                 "required": ["userId"]
@@ -230,7 +279,7 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="upload-file",
-            description="Upload a file to Slack",
+            description="Upload a file to Slack as the authenticated user",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -244,7 +293,7 @@ async def list_tools() -> list[Tool]:
                     },
                     "content": {
                         "type": "string",
-                        "description": "File content (alternative to filePath)"
+                        "description": "File content as string (alternative to filePath)"
                     },
                     "filename": {
                         "type": "string",
@@ -264,13 +313,13 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="create-channel",
-            description="Create a new Slack channel",
+            description="Create a new Slack channel as the authenticated user",
             inputSchema={
                 "type": "object",
                 "properties": {
                     "name": {
                         "type": "string",
-                        "description": "Channel name (lowercase, no spaces)"
+                        "description": "Channel name (lowercase, hyphens, underscores only)"
                     },
                     "isPrivate": {
                         "type": "boolean",
@@ -317,13 +366,31 @@ async def list_tools() -> list[Tool]:
                 },
                 "required": ["channel", "topic"]
             }
+        ),
+        Tool(
+            name="set-channel-purpose",
+            description="Set the purpose/description for a channel",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "channel": {
+                        "type": "string",
+                        "description": "Channel ID"
+                    },
+                    "purpose": {
+                        "type": "string",
+                        "description": "New channel purpose/description"
+                    }
+                },
+                "required": ["channel", "purpose"]
+            }
         )
     ]
 
 
 @app.call_tool()
 async def call_tool(name: str, arguments: Any) -> list[TextContent]:
-    """Handle tool calls"""
+    """Handle tool calls - all operations use user token"""
     
     # Ensure user is authenticated
     if not slack.client:
@@ -336,15 +403,22 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
                 text=arguments['text'],
                 thread_ts=arguments.get('threadTs')
             )
+        elif name == "send-dm":
+            result = slack.send_dm(
+                user_id=arguments['userId'],
+                text=arguments['text'],
+                thread_ts=arguments.get('threadTs')
+            )
         elif name == "list-channels":
             result = slack.list_channels(
                 types=arguments.get('types', 'public_channel,private_channel'),
-                limit=arguments.get('limit', 100)
+                limit=arguments.get('limit', 200),
+                exclude_archived=arguments.get('excludeArchived', True)
             )
         elif name == "get-channel-history":
             result = slack.get_channel_history(
                 channel=arguments['channel'],
-                limit=arguments.get('limit', 10),
+                limit=arguments.get('limit', 100),
                 oldest=arguments.get('oldest'),
                 latest=arguments.get('latest')
             )
@@ -374,6 +448,12 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
             )
         elif name == "add-reaction":
             result = slack.add_reaction(
+                channel=arguments['channel'],
+                timestamp=arguments['timestamp'],
+                name=arguments['name']
+            )
+        elif name == "remove-reaction":
+            result = slack.remove_reaction(
                 channel=arguments['channel'],
                 timestamp=arguments['timestamp'],
                 name=arguments['name']
@@ -409,6 +489,11 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
             result = slack.set_channel_topic(
                 channel=arguments['channel'],
                 topic=arguments['topic']
+            )
+        elif name == "set-channel-purpose":
+            result = slack.set_channel_purpose(
+                channel=arguments['channel'],
+                purpose=arguments['purpose']
             )
         else:
             raise ValueError(f"Unknown tool: {name}")
