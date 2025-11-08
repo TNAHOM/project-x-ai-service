@@ -1,3 +1,5 @@
+from langchain_community.tools import DuckDuckGoSearchRun
+from langchain_core.prompts import ChatPromptTemplate, HumanMessagePromptTemplate
 from unittest import result
 from app.core.logger import get_logger
 from fastapi import FastAPI, Body
@@ -349,6 +351,63 @@ class AI():
             self.logger.error("The agent chain failed.", exc_info=e)
             # Depending on desired behavior, you might want to return an error dictionary
             return {"error": str(e)}
+
+    def expander_agent(self, context: input_schema.ExpanderContext, user_prompt: str | None):
+        """Expander Agent
+
+        Enriches a chosen automation task with external context via DuckDuckGo search.
+        It leverages the static AvailableTools prompt and returns a structured
+        ExpanderAgentOutput.
+        """
+
+        self.logger.info("Expander Agent Invoked", extra={"context": context.model_dump(), "user_prompt": user_prompt})
+        try:
+            # Prepare dynamic search queries based on task name/description and user prompt
+            queries = []
+            if context.chosen_task.name:
+                queries.append(f"best practices {context.chosen_task.name}")
+            if context.chosen_task.description:
+                queries.append(context.chosen_task.description[:120])
+            if user_prompt:
+                queries.append(user_prompt[:120])
+            # Deduplicate and cap
+            seen = set()
+            unique_queries = []
+            for q in queries:
+                qn = q.strip()
+                if qn and qn.lower() not in seen:
+                    seen.add(qn.lower())
+                    unique_queries.append(qn)
+            unique_queries = unique_queries[:4]
+
+            search_tool = DuckDuckGoSearchRun()
+            search_results = []
+            for q in unique_queries:
+                try:
+                    res = search_tool.run(q)
+                except Exception as e:
+                    res = f"Search error for '{q}': {e}"
+                search_results.append({"query": q, "raw_result": res})
+
+            expander_prompt = ChatPromptTemplate.from_messages([
+                HumanMessagePromptTemplate.from_template(prompt.ExpanderAgentPrompt)
+            ])
+
+            structured_llm = self.llm.with_structured_output(output_schema.ExpanderAgentOutput)
+            result = (expander_prompt | structured_llm).invoke({
+                "chosen_task": json.dumps(context.chosen_task.model_dump()),
+                "clarification_answers": json.dumps(context.clarification_answers) if context.clarification_answers else json.dumps({}),
+                "user_prompt": user_prompt or "",
+                "user_memory": json.dumps(context.user_memory) if context.user_memory else json.dumps({}),
+                "available_tools": prompt.AvailableTools,
+                "search_snippets": json.dumps(search_results),
+            })
+
+            validated = output_schema.ExpanderAgentOutput.model_validate(result)
+            return validated
+        except Exception as e:
+            self.logger.error("Expander Agent failed", exc_info=e)
+            raise
         
 
    

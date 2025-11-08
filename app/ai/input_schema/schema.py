@@ -61,6 +61,19 @@ class TaskClarificationContext(BaseContext):
     task_to_clarify: TaskModel 
     user_memory_summary: Optional[Dict[str, Any]] 
     
+class ExpanderContext(BaseContext):
+    """Context for the Expander Agent.
+
+    Combines a chosen automation task, any answers the user provided to previous
+    clarification questions, and optionally user memory. The agent will enrich this
+    with external context (web search) and produce expanded execution-relevant
+    insights. The raw user prompt is passed separately (top-level request like other agents).
+    Available tools are read implicitly from the static prompt export (`prompt.AvailableTools`).
+    """
+    chosen_task: TaskModel
+    clarification_answers: Optional[Dict[str, Any]] = None
+    user_memory: Optional[Dict[str, Any]] = None
+    
 
 
 # --- Meta Agents context ---#
@@ -135,7 +148,21 @@ class ExecutionAgentRequest(AgentRequest):
     agent_name: Literal["execution"]
     context: Optional[ExecutionContext]
     
+class ExpanderAgentRequest(AgentRequest):
+    agent_name: Literal["expander"]
+    context: ExpanderContext
+    
 AnyAgentRequest = Union[
-    ClarifyingAgentRequest, ClassifyingAgentRequest, DomainAgentRequest, TasksAgentRequest, UserMemoryAgentRequest, VentingAgentRequest, AutomationAgentRequest, ExecutionAgentRequest, ClarifyAutomationAgentRequest, ProblemSpaceRequest
+    ClarifyingAgentRequest,
+    ClassifyingAgentRequest,
+    DomainAgentRequest,
+    TasksAgentRequest,
+    UserMemoryAgentRequest,
+    VentingAgentRequest,
+    AutomationAgentRequest,
+    ExecutionAgentRequest,
+    ClarifyAutomationAgentRequest,
+    ProblemSpaceRequest,
+    ExpanderAgentRequest,
 ]
 
