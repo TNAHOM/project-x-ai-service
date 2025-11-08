@@ -107,6 +107,14 @@ async def ai(request: schema.AnyAgentRequest = Body(..., discriminator='agent_na
             logger.info(f"Problem Space agent result: {result}")
             return result
 
+        elif agent_name == "expander":
+            result = ai_instance.expander_agent(
+                context=context,  # type: ignore[arg-type]
+                user_prompt=user_prompt,
+            )
+            logger.info(f"Expander agent result: {result}")
+            return result
+
         else:
             raise HTTPException(status_code=400, detail="Invalid agent name.")
 
