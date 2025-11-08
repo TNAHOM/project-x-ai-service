@@ -22,7 +22,7 @@ You are an **Autonomous Research & Execution Agent**. Your primary function is t
 *   {strategic_objective} (json): The high-level goal you must achieve.
 *   {previous_tasks} (json)
 *   {user_prompt} (string)
-*   {knowledge_base_summary} (json object)
+*   {user_memory_summary} (json object)
 
 #### Final Output:
 

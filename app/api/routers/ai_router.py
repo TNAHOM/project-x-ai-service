@@ -75,8 +75,8 @@ async def ai(request: schema.AnyAgentRequest = Body(..., discriminator='agent_na
             logger.info(f"Clarify Automation agent result: {result}")
             return result
 
-        elif agent_name == "knowledge_base":
-            result = ai_instance.knowledge_base_agent(
+        elif agent_name == "user_memory":
+            result = ai_instance.user_memory_agent(
                 context=context,  # type: ignore[arg-type]
                 user_prompt=user_prompt,
             )
@@ -98,6 +98,15 @@ async def ai(request: schema.AnyAgentRequest = Body(..., discriminator='agent_na
             )
             logger.info(f"Execution agent result: {result}")
             return result
+
+        elif agent_name == "problem_space":
+            result = ai_instance.problem_space_agent(
+                classify_context=context,  # type: ignore[arg-type]
+                user_prompt=user_prompt,
+            )
+            logger.info(f"Problem Space agent result: {result}")
+            return result
+
         else:
             raise HTTPException(status_code=400, detail="Invalid agent name.")
 
