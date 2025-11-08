@@ -6,11 +6,27 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from contextlib import asynccontextmanager
 import asyncio
-
+from sqlalchemy import text
+from app.infrastructure.db import engine
 
 setup_logging()
 logger = get_logger(__name__)
 
+def init_db():
+    """Verify DB connectivity and log basic status.
+
+    - Executes a trivial SELECT 1.
+    - Optionally attempts to reflect 'users' and 'tokens' tables.
+    This avoids heavy reflection of all tables on startup.
+    """
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        logger.info("✅ Database connectivity OK.")
+    except Exception as e:
+        logger.error(f"❌ Database connection failed: {e}")
+        return
+    
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -18,6 +34,7 @@ async def lifespan(app: FastAPI):
     # --- Startup ----
     try:
         logger.info("Initializing MCP client...")
+        init_db()
         await initialize_mcp_client()
         yield
     finally:
@@ -26,7 +43,7 @@ async def lifespan(app: FastAPI):
         try:
             logger.info("Closing MCP client...")
             # Best-effort shutdown with timeout; avoid propagating cancellation during reload/Ctrl+C
-            # await close_mcp_client(timeout=5.0)
+            await close_mcp_client(timeout=5.0)
         except asyncio.CancelledError:
             logger.warning("⚠️ Lifespan shutdown cancelled during MCP client close; continuing app shutdown.")
         
