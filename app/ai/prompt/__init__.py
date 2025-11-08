@@ -11,6 +11,7 @@ from .TasksPrompt import TasksAgentPrompt
 from .UserMemoryPrompt import UserMemoryAgentPrompt
 from .VentingPrompt import VentingAgentPrompt
 from .AutomationPrompts import AutomationAgentPrompt, AvailableTools
+from .ExpanderPrompts import ExpanderAgentPrompt
 from .ClarifyAutomationPrompts import ClarifyAutomationAgentPrompt
 
 __all__ = [
@@ -22,6 +23,7 @@ __all__ = [
 	"TasksAgentPrompt",
     "AutomationAgentPrompt",
     "AvailableTools",
+	"ExpanderAgentPrompt",
 	"UserMemoryAgentPrompt",
 	"VentingAgentPrompt",
     "ClarifyAutomationAgentPrompt"

@@ -206,6 +206,28 @@ class VentingAgentOutput(BaseModel):
 		None, description="Proposed structured problem space when is_problem_space is true."
 	)
 
+# --- Expander Agent ---
+class ExecutionContextSuggestion(BaseModel):
+    """Suggested key-value pair or structured snippet to add to execution context."""
+    key: str = Field(..., description="Name of the context field (snake_case).")
+    value: Any = Field(..., description="Value or structured object to attach under this key.")
+    rationale: str = Field(..., description="Why this addition is helpful for execution.")
+
+class ExpanderAgentOutput(BaseModel):
+    """Output for the Expander agent.
+
+    Takes a chosen automation task + clarification answers + available tools + user prompt
+    and performs external research (DuckDuckGo) to enrich the execution context.
+    """
+    research_summary: str = Field(..., description="Narrative summary (3-6 sentences) of findings relevant to the task.")
+    sources: List[str] = Field(default_factory=list, description="Distinct source URLs or titles referenced.")
+    risk_flags: List[str] = Field(default_factory=list, description="Potential risks, ambiguities, or missing data points.")
+    recommended_tools: List[str] = Field(default_factory=list, description="Subset of available tools most relevant to this task.")
+    enriched_context: Dict[str, Any] = Field(default_factory=dict, description="Merged enriched facts (low-level).")
+    execution_suggestions: List[ExecutionContextSuggestion] = Field(
+        default_factory=list,
+        description="Discrete suggestions to augment downstream execution context.")
+
 __all__ = [
 	"ClarifyingAgentOutput",
 	"ProblemSpaceOutput",
@@ -217,6 +239,7 @@ __all__ = [
 	"VentingAgentOutput",
 	"ExecutionAgentOutput",
 	"AutomationAgentOutput",
-	"ClarifyAutomationAgentOutput"
+	"ClarifyAutomationAgentOutput",
+	"ExpanderAgentOutput"
 ]
 
