@@ -5,9 +5,7 @@ from typing import Any
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import Tool, TextContent
-
-from server import GoogleDocsService
-
+from app.mcp.google_doc_sheet_mcp.server import GoogleDocsService
     
 # Initialize MCP server and Google Docs/Sheets service
 app = Server("google-docs-mcp")

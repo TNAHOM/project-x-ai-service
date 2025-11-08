@@ -2,8 +2,7 @@ from fastapi import APIRouter
 from app.services.ExecutionAgentService import ExecutionAgentService
 from app.core.logger import get_logger
 from app.api.schemas.agent_schema import AgentMessage
-
-import json
+from app.api.schemas.mcp_schema import ExpanderResponseSchema
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 from app.services.ExpanderAgentService import run_expander_agent
@@ -44,36 +43,61 @@ async def expander_agent(payload: AgentMessage):
         output = []
         for task in tasks:
             logger.info(f"Task: {task}")
-            # Pass all tasks at once
-            response = await run_expander_agent(str(task))
-            # Remove code block markers if present
-            if response.strip().startswith("```"):
-                response = response.strip().lstrip("`json").strip("`").strip()
-                # Remove any leading/trailing code block markers
-                if response.startswith("json"):
-                    response = response[4:].strip()
-            # Parse response (assuming it's JSON)
-            parsed = json.loads(response)
-            # If the response is a list, wrap it in the expected schema
-            if isinstance(parsed, list):
-                output.extend(parsed)
-            # If the response is an object with "answer", handle accordingly
-            elif isinstance(parsed, dict) and "answer" in parsed:
-                output.append({"title": task, "contents": parsed["answer"], "type": "none"})
+            response, userPrompt = await run_expander_agent(str(task))
+            # response can be a list or dict
+            if isinstance(response, list):
+                for item in response:
+                    logger.info(f"Expander Agent response list: {item}")
+                    if isinstance(item, dict):
+                        print("check the type", item.get("toolType"))
+                        if item.get("toolType") == "none":
+                            output.append(item)
+                            continue
+                        # Coerce dict into ExpanderResponseSchema for the execution agent
+                        try:
+                            raw_response = item.get("response")
+                            raw_tool = item.get("toolType")
+                            if not isinstance(raw_response, dict) or not isinstance(raw_tool, str):
+                                raise ValueError("Missing or invalid 'response' (dict) or 'toolType' (str) in item")
+                            expander_item = ExpanderResponseSchema(
+                                response=raw_response,
+                                toolType=raw_tool,
+                            )
+                        except Exception as e:
+                            logger.error(f"Invalid expander item schema: {e}; item: {item}")
+                            output.append({"error": "Invalid expander item schema", "details": str(e), "item": item})
+                            continue
+                        executionAgent = await agent_service.run_agent(messageRequest=expander_item, userprompt=userPrompt)
+                        output.append(executionAgent)
+                    else:
+                        logger.error(f"Unexpected item type inside list: {type(item)}")
+                        output.append({"error": "Unexpected item type from expander agent list", "itemType": str(type(item))})
+            elif isinstance(response, dict):
+                logger.info(f"Expander Agent response dict: {response}")
+                print("check the type", response.get("toolType"))
+                if response.get("toolType") == "none":
+                    output.append(response)
+                else:
+                    # Coerce dict into ExpanderResponseSchema for the execution agent
+                    try:
+                        raw_response = response.get("response")
+                        raw_tool = response.get("toolType")
+                        if not isinstance(raw_response, dict) or not isinstance(raw_tool, str):
+                            raise ValueError("Missing or invalid 'response' (dict) or 'toolType' (str) in response")
+                        expander_item = ExpanderResponseSchema(
+                            response=raw_response,
+                            toolType=raw_tool,
+                        )
+                    except Exception as e:
+                        logger.error(f"Invalid expander response schema: {e}; response: {response}")
+                        output.append({"error": "Invalid expander response schema", "details": str(e), "item": response})
+                        continue
+                    executionAgent = await agent_service.run_agent(messageRequest=expander_item, userprompt=userPrompt)
+                    output.append(executionAgent)
             else:
-                output.append({"title": task, "contents": "Unable to process task.", "type": "none"})
-        
-        executionOutput = []
-        for outputtasks in output:
-            # check if the key type is none
-            print("check the type", outputtasks.get("type"))
-            if outputtasks.get("type") == "none":
-                executionOutput.append(outputtasks)
-                continue
-            executionAgent = await agent_service.run_agent(messageRequest=outputtasks)
-            executionOutput.append(executionAgent)
-
-        return {"executionOutput": executionOutput}
+                logger.error(f"Unexpected response type from expander agent: {type(response)}")
+                output.append({"error": "Unexpected response type from expander agent"})
+        return output
     except Exception as e:
         logger.error(f"Error in expander agent: {str(e)}")
         return {"error": str(e)}

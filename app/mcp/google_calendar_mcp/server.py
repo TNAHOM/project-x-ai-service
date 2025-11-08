@@ -4,20 +4,10 @@ Pure Python class used by the MCP app entrypoint (see app.py).
 """
 
 import os
-import sys
 from pathlib import Path
 from typing import Any, Optional, cast
 import json
 from datetime import datetime, timedelta
-
-# Ensure we can import the shared app package when this module runs as a standalone
-# tool entrypoint.
-# Folder layout: <repo>/app/mcp/google-calendar-mcp/server.py
-# We need the REPO ROOT on sys.path so `import app.core.logger` works.
-CURRENT_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = CURRENT_DIR.parents[3]
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
 
 from app.core.logger import logging
 from google.auth.transport.requests import Request
@@ -28,26 +18,13 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 logger = logging.getLogger(__name__)
-# OAuth 2.0 scopes
 SCOPES = [
     'https://www.googleapis.com/auth/calendar',
     'https://www.googleapis.com/auth/calendar.events'
 ]
 
-# Paths for credentials (default to files alongside this script)
-# Normalize credential paths so downstream code can rely on pathlib operations.
-def _path_from_env(env_key: str, default: Path) -> Path:
-    raw_value = os.environ.get(env_key)
-    if raw_value:
-        candidate = Path(raw_value).expanduser()
-        if not candidate.is_absolute():
-            return (default.parent / candidate).resolve()
-        return candidate
-    return default.resolve()
-
-TOKEN_PATH = Path(__file__).parent / 'token.json'
-CREDENTIALS_PATH = Path(__file__).parent / 'credentials.json'
-logger.info(f"Using TOKEN_PATH: {TOKEN_PATH}, CREDENTIALS_PATH: {CREDENTIALS_PATH}")
+TOKEN_PATH = Path(__file__).parent / 'tokens' / 'token.json'
+CREDENTIALS_PATH = Path(__file__).parent / 'tokens' / 'credentials.json'
 
 
 class GoogleCalendarService:
@@ -56,8 +33,11 @@ class GoogleCalendarService:
     def __init__(self):
         # Use the base Credentials type to allow for different credential implementations
         self.creds: Optional[BaseCredentials] = None
-        # Use Any for service to avoid overly strict attribute typing on dynamic discovery resources
         self.service: Any = None
+        self.CREDENTIALS_PATH = CREDENTIALS_PATH
+        self.TOKEN_PATH = TOKEN_PATH
+        logger.info(f"Raw GOOGLE_CREDENTIALS_PATH from env: {self.CREDENTIALS_PATH}")
+        logger.info(f"Raw GOOGLE_TOKEN_PATH from env: {self.TOKEN_PATH}")
         logger.info(f"Using TOKEN_PATH: {TOKEN_PATH}, CREDENTIALS_PATH: {CREDENTIALS_PATH}")
 
     
@@ -68,36 +48,19 @@ class GoogleCalendarService:
         1) GOOGLE_CREDENTIALS_PATH env var (file path)
         2) credentials.json alongside this server.py
         """
-        env_path = os.environ.get("GOOGLE_CREDENTIALS_PATH")
-        if env_path:
-            return Path(env_path)
         return CREDENTIALS_PATH
         
     def authenticate(self) -> bool:
         """Authenticate using OAuth 2.0"""
-        # Try non-interactive token sources first to keep STDIO servers safe
-        token_json_env = os.environ.get("GOOGLE_TOKEN_JSON")
-        token_path_env = os.environ.get("GOOGLE_TOKEN_JSON_PATH")
-
-        # Load existing credentials (env JSON > env PATH > local token.json)
-        try:
-            if token_json_env:
-                info = json.loads(token_json_env)
-                self.creds = Credentials.from_authorized_user_info(info, SCOPES)
-            elif token_path_env and Path(token_path_env).expanduser().exists():
-                self.creds = Credentials.from_authorized_user_file(str(Path(token_path_env).expanduser()), SCOPES)
-            elif TOKEN_PATH.exists():
-                self.creds = Credentials.from_authorized_user_file(str(TOKEN_PATH), SCOPES)
-        except Exception as e:
-            # Do not expose sensitive data; just note failure to parse/load
-            logger.warning("Failed to load Google token credentials from env/path: %s", e)
+        # Load existing credentials
+        if TOKEN_PATH.exists():
+            self.creds = Credentials.from_authorized_user_file(str(TOKEN_PATH), SCOPES)
         
         # Refresh or get new credentials
         if not self.creds or not self.creds.valid:
             if self.creds and getattr(self.creds, "expired", False) and getattr(self.creds, "refresh_token", None):
                 self.creds.refresh(Request())
             else:
-                # Interactive OAuth is NOT safe over STDIO servers. Avoid unless explicitly allowed.
                 cred_path = self._get_credentials_path()
                 if not cred_path.exists():
                     env_hint = os.environ.get("GOOGLE_CREDENTIALS_PATH")
@@ -129,6 +92,7 @@ class GoogleCalendarService:
         # Build service
         self.service = build('calendar', 'v3', credentials=self.creds)
         return True
+    
     
     def list_calendars(self) -> dict:
         """List all calendars"""

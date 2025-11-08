@@ -18,7 +18,7 @@ async def lifespan(app: FastAPI):
     # --- Startup ----
     try:
         logger.info("Initializing MCP client...")
-        # await initialize_mcp_client()
+        await initialize_mcp_client()
         yield
     finally:
         logger.info("🛑 FastAPI app shutting down.")

@@ -3,13 +3,6 @@ import sys
 from pathlib import Path
 from typing import Any, Optional
 
-# Ensure the project root is on sys.path so we can import the shared app package when
-# this module is executed via a standalone entrypoint.
-CURRENT_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = CURRENT_DIR.parents[2]
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
-
 from app.core.logger import logging
 from google.auth.transport.requests import Request
 from google.auth.credentials import Credentials as BaseCredentials
@@ -28,19 +21,9 @@ SCOPES = [
     'https://www.googleapis.com/auth/drive.readonly'
 ]
 
-# Resolve default credential locations relative to this module so local executions
-# without environment overrides still have predictable storage.
-def _path_from_env(env_key: str, default: Path) -> Path:
-    raw_value = os.environ.get(env_key)
-    if raw_value:
-        candidate = Path(raw_value).expanduser()
-        if not candidate.is_absolute():
-            return (default.parent / candidate).resolve()
-        return candidate
-    return default.resolve()
+TOKEN_PATH = Path(__file__).parent / 'tokens' / 'token.json'
+CREDENTIALS_PATH = Path(__file__).parent / 'tokens' / 'credentials.json'
 
-TOKEN_PATH = _path_from_env("GOOGLE_TOKEN_PATH", CURRENT_DIR / "token.json")
-CREDENTIALS_PATH = _path_from_env("GOOGLE_CREDENTIALS_PATH", CURRENT_DIR / "credentials.json")
 logger.info(f"Using TOKEN_PATH: {TOKEN_PATH}, CREDENTIALS_PATH: {CREDENTIALS_PATH}")
 # Load environment variables from a local .env if present
 def _load_env_file() -> None:
@@ -110,7 +93,7 @@ class GoogleDocsService:
                     env_hint = os.environ.get("GOOGLE_CREDENTIALS_PATH")
                     msg = [
                         "Credentials file not found.",
-                        f"Looked for: {cred_path}",
+                        f"Looked forz: {cred_path}",
                     ]
                     if env_hint:
                         msg.append("GOOGLE_CREDENTIALS_PATH is set but the file was not found at that path.")

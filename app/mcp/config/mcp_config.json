@@ -1,19 +1,15 @@
 {
   "mcpServers": {
-    
     "google-calendar": {
       "transport": "stdio",
-      "command": ".venv/bin/python",
-      "args": [
-        "-m",
-        "app.mcp.google-calendar-mcp.app"
-      ],
-      "cwd": "/home/binyammulat/Projects/Buddy_Ai/project-x-ai-service",
-      "env": {
-        "PYTHONUNBUFFERED": "1",
-        "GOOGLE_CREDENTIALS_PATH": "/home/binyammulat/Projects/Buddy_Ai/project-x-ai-service/app/mcp/google-calendar-mcp/credentials.json",
-        "MCP_USE_ANONYMIZED_TELEMETRY": "false"
-      }
+      "command": "c:\\Users\\HP\\OneDrive\\Desktop\\Development\\work\\Budera\\project-x-ai-service\\venv\\Scripts\\python.exe",
+      "args": ["-m", "app.mcp.google_calendar_mcp.app"]
+    },
+
+    "google-doc-sheet": {
+      "transport": "stdio",
+      "command": "c:\\Users\\HP\\OneDrive\\Desktop\\Development\\work\\Budera\\project-x-ai-service\\venv\\Scripts\\python.exe",
+      "args": ["-m", "app.mcp.google_doc_sheet_mcp.tool"]
     }
   }
 }

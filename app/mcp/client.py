@@ -3,12 +3,16 @@ import logging
 import asyncio
 from typing import Optional
 
-# Disable anonymized telemetry by default unless explicitly enabled in the environment
-# Must be set BEFORE importing mcp_use to take effect.
-os.environ.setdefault("MCP_USE_ANONYMIZED_TELEMETRY", "false")
+
 
 from mcp_use import MCPClient
 from app.core.config import settings
+from app.mcp.google_calendar_mcp.server import GoogleCalendarService
+
+
+# Disable anonymized telemetry by default unless explicitly enabled in the environment
+# Must be set BEFORE importing mcp_use to take effect.
+os.environ.setdefault("MCP_USE_ANONYMIZED_TELEMETRY", "false")
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +44,13 @@ async def initialize_mcp_client() -> MCPClient:
         # --- Health Check : Create All Sessions --- 
         r = await client.create_all_sessions()
         logger.info(f"MCPClient sessions created with result: {r}")
+        
+        # --- Check for google credentials ---
+        google_auth = GoogleCalendarService().authenticate()
+        if not google_auth:
+            logger.warning("⚠️ Google Calendar authentication failed during MCPClient initialization.")
+        logger.info("✅ Google Calendar authenticated successfully.")
+        
         # --- Store as singleton --- *
         _client_instance = client
         logger.info("✅ MCPClient initialized and sessions created successfully.")

@@ -2,6 +2,21 @@ from datetime import datetime
 from typing import Union, Optional, Dict, Any, Literal 
 from pydantic import BaseModel, Field, field_validator 
 
+class ExpanderResponseSchema(BaseModel):
+    """
+    Schema for the response from the Expander Agent.
+    Contains response:jsonb that holds the expanded tasks and toolType:str indicating the type of tool to be used.    
+    """
+    
+    response: Dict[str, Any] = Field(
+        ...,
+        description="Expanded tasks in JSON format"
+    )
+    toolType: str = Field(
+        ...,
+        description="Type of tool to be used for the task"
+    )
+
 class ChatRequest(BaseModel):
     """
         Schema For Incoming Chat Requests from the Frontend 
@@ -25,7 +40,6 @@ class ChatRequest(BaseModel):
         description="Type of Tool based on the available tools if their is no avialable tools that relates to this use none, e.g., 'notion', 'slack', 'none' etc."
     )
     
-    # --- Add Notion Mode ----
     enable_notion: Optional[bool] = Field(
         True,
         description="Toggle MCP integration (true for full agent with tools, false for basic LLM)",

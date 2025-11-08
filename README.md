@@ -1,8 +1,8 @@
 ## Folder structure
 
-```
+````
 
-├── app/ 
+├── app/
 │
 ├── app/
 │   ├── __init__.py
@@ -62,11 +62,11 @@
 			"google-calendar": {
 				"transport": "stdio",
 				"command": ".venv/bin/python",
-				"args": ["-m", "app.mcp.google-calendar-mcp.app"],
+				"args": ["-m", "app.mcp.google_calendar_mcp.app"],
 				"cwd": "/ABSOLUTE/PATH/TO/project-x-ai-service",
 				"env": {
 					"PYTHONUNBUFFERED": "1",
-					"GOOGLE_CREDENTIALS_PATH": "/ABSOLUTE/PATH/TO/project-x-ai-service/app/mcp/google-calendar-mcp/credentials.json"
+					"GOOGLE_CREDENTIALS_PATH": "/ABSOLUTE/PATH/TO/project-x-ai-service/app/mcp/google_calendar_mcp/credentials.json"
 				}
 			}
 		}
@@ -76,11 +76,11 @@
 
 ## Google Calendar MCP setup
 
-- Place your OAuth client secrets JSON at `app/mcp/google-calendar-mcp/credentials.json`, or set the environment variable `GOOGLE_CREDENTIALS_PATH` to an absolute path to your credentials file.
+- Place your OAuth client secrets JSON at `app/mcp/google_calendar_mcp/credentials.json`, or set the environment variable `GOOGLE_CREDENTIALS_PATH` to an absolute path to your credentials file.
 - The first time a tool call requires authentication, the Google OAuth flow may try to open a browser. For headless environments, consider pre-authorizing and providing a `token.json` alongside the server (or configure an alternative OAuth flow).
 ├── requirements.txt
 ├── .env
 ├── README.md
 └── pyproject.toml  (optional if using Poetry)
 
-```
+````

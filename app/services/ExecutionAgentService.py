@@ -1,7 +1,7 @@
 
 from math import log
 from langchain_google_genai import ChatGoogleGenerativeAI
-from app.api.schemas.mcp_schema import ChatRequest
+from app.api.schemas.mcp_schema import ChatRequest, ExpanderResponseSchema
 from app.core.config import settings
 from app.core.logger import get_logger
 from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage
@@ -25,11 +25,12 @@ class ExecutionAgentService:
             model="gemini-2.5-flash",
             temperature=0,
             max_tokens=None,
-            timeout=300,
-            max_retries=2,
+            timeout=500,
+            max_retries=4,
         )
+        
 
-    async def run_agent(self, messageRequest: input_schema.ExecutionContext, userprompt: str|None):
+    async def run_agent(self, messageRequest: ExpanderResponseSchema, userprompt: str|None):
         """
         Run the agent using ChatGoogleGenerativeAI.bind_tools().
         """
@@ -42,9 +43,8 @@ class ExecutionAgentService:
             # Construct a detailed prompt from the messageRequest object
             context_prompt = (
                 f"Executing a task with the following context:\n"
-                f"Title: {messageRequest.title}\n"
-                f"Tool Type: {messageRequest.type}\n"
-                f"Contents: {messageRequest.contents}"
+                f"Response: {messageRequest.response}\n"
+                f"Tool Type: {messageRequest.toolType}\n"
             )
 
             # Combine the context with the user's original prompt
